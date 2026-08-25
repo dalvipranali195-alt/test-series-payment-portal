@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@/types/database.types';
 
@@ -18,6 +19,22 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .select('*')
     .eq('id', user.id)
     .single();
+
+  return profile;
+}
+
+/**
+ * Guard for admin-only pages and server actions. Redirects non-admins to
+ * /dashboard. RLS is still the real enforcement layer — this only keeps the
+ * UI from rendering admin screens or attempting admin-only writes for
+ * users who'd be rejected by the database anyway.
+ */
+export async function requireAdmin(): Promise<Profile> {
+  const profile = await getCurrentProfile();
+
+  if (!profile || !profile.is_active || profile.role !== 'admin') {
+    redirect('/dashboard');
+  }
 
   return profile;
 }
