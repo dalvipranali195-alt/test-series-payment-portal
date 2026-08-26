@@ -225,7 +225,7 @@ function todayStr() { return new Date().toISOString().slice(0, 10); }
 function defaultState() {
   return {
     schemaVersion: 2,
-    settings: { adminPassword: 'admin123', checkerRate: 15, supervisorRate: 75, openDayRate: 500 },
+    settings: { adminPassword: 'admin123', checkerRate: 15, supervisorRate: 75, openDayRate: 500, orgName: '', orgLogo: '', orgDescription: '', orgLocation: '', orgContact: '' },
     branches: ['Main Branch', 'City Branch'],
     forms: ['Form A', 'Form B'],
     batches: ['Batch 1', 'Batch 2'],
@@ -379,16 +379,19 @@ function removeMasterItem(listKey, name) {
   next[listKey] = (next[listKey] || []).filter(v => v !== name);
   persistAndPublish(next, `${MASTER_LIST_LABELS[listKey]} removed.`);
 }
-function masterFieldsFormRow(prefix, editing) {
+function masterFieldsFormRow(prefix, editing, includeSession) {
+  includeSession = includeSession !== false;
   return `
     <div class="form-row">
       <div class="field"><label>Form</label><select id="${prefix}-form">${masterFieldOptions('forms', editing ? editing.form : '')}</select></div>
       <div class="field"><label>Batch</label><select id="${prefix}-batch">${masterFieldOptions('batches', editing ? editing.batch : '')}</select></div>
     </div>
+    ${includeSession ? `
     <div class="form-row">
       <div class="field"><label>Standard</label><select id="${prefix}-standard">${masterFieldOptions('standards', editing ? editing.standard : '')}</select></div>
       <div class="field"><label>Academic Session</label><select id="${prefix}-session">${masterFieldOptions('sessions', editing ? editing.session : '')}</select></div>
-    </div>
+    </div>` : `
+    <div class="field"><label>Standard</label><select id="${prefix}-standard">${masterFieldOptions('standards', editing ? editing.standard : '')}</select></div>`}
   `;
 }
 function renderMasterListCard(listKey) {
@@ -407,13 +410,15 @@ function renderMasterListCard(listKey) {
     </div>
   `;
 }
-function readMasterFields(prefix) {
-  return {
+function readMasterFields(prefix, includeSession) {
+  includeSession = includeSession !== false;
+  const result = {
     form: document.getElementById(prefix + '-form').value,
     batch: document.getElementById(prefix + '-batch').value,
-    standard: document.getElementById(prefix + '-standard').value,
-    session: document.getElementById(prefix + '-session').value
+    standard: document.getElementById(prefix + '-standard').value
   };
+  if (includeSession) result.session = document.getElementById(prefix + '-session').value;
+  return result;
 }
 function roleTagPills(roles) {
   return (roles || []).map(r => `<span class="pill neutral">${escapeHtml(r)}</span>`).join(' ') || '<span class="pill neutral">No role</span>';
@@ -1051,7 +1056,7 @@ function openSupervisorModal(id) {
         ${staffFieldHtml}
       </div>
       <div class="field"><label>Branch</label><select id="sv-branch">${branchOptions(editing ? editing.branch : (isSelf ? identity.staff.branch : state.branches[0]))}</select></div>
-      ${masterFieldsFormRow('sv', editing)}
+      ${masterFieldsFormRow('sv', editing, false)}
       <div class="field"><label>Test / Exam Name</label><input type="text" id="sv-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required></div>
       <div class="field"><label>Supervision Details</label><input type="text" id="sv-detail" value="${editing ? escapeHtml(editing.detail) : ''}" placeholder="e.g. Hall A, morning session"></div>
       <div class="form-row">
@@ -1093,10 +1098,11 @@ function submitSupervisor(e, editingId) {
   const rate = Number(document.getElementById('sv-rate').value) || 0;
   const approvalStatus = identity.type === 'admin' ? document.getElementById('sv-approval').value : (window.__svSaveMode || 'draft');
   const prevSubmittedAt = editingId ? findRecord('supervisor', editingId).submittedAt : '';
+  const existingSession = editingId ? (findRecord('supervisor', editingId).session || '') : '';
   const rec = {
     date: document.getElementById('sv-date').value,
     branch: document.getElementById('sv-branch').value,
-    ...readMasterFields('sv'),
+    ...readMasterFields('sv', false), session: existingSession,
     staffId, staffName: staff.name,
     exam: document.getElementById('sv-exam').value.trim(),
     detail: document.getElementById('sv-detail').value.trim(),
@@ -1329,9 +1335,63 @@ function renderReportsTab(identity) {
       <select id="rep-session" onchange="reportsSessionFilter=this.value; renderReportResults();">${masterFilterOptions('sessions', reportsSessionFilter)}</select>
     </div>
     <div id="report-results"></div>
+    ${identity.type === 'admin' ? `
+    <div class="card" style="margin-top:18px;">
+      <h3>Monthly Salary Slip</h3>
+      <p class="helper" style="margin-bottom:12px;">Only approved Paper Checker, Supervisor and Open Day payments for the selected month are included.</p>
+      <div class="form-row">
+        <div class="field"><label>Staff</label><select id="slip-staff">${state.staff.map(s => `<option value="${escapeHtml(s.staffId)}">${escapeHtml(s.staffId)} — ${escapeHtml(s.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Month</label><input type="month" id="slip-month" value="${todayStr().slice(0, 7)}"></div>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" onclick="previewSalarySlip()">Preview Slip</button>
+      <div id="salary-slip-preview"></div>
+    </div>` : ''}
   `;
 }
 function setReportMode(m) { reportMode = m; render(); setTimeout(renderReportResults, 0); }
+function monthLabel(monthStr) {
+  if (!monthStr) return '';
+  const parts = monthStr.split('-');
+  const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const idx = Number(parts[1]) - 1;
+  return (names[idx] || parts[1]) + ' ' + parts[0];
+}
+function computeSalarySlipData(staffId, monthStr) {
+  const staff = staffById(staffId);
+  const checkerRows = state.checker.filter(r => r.staffId === staffId && r.approvalStatus === 'approved' && monthKey(r.dateOfPaper) === monthStr);
+  const supervisorRows = state.supervisor.filter(r => r.staffId === staffId && r.approvalStatus === 'approved' && monthKey(r.date) === monthStr);
+  const openDayRows = state.openday.filter(r => r.staffId === staffId && r.approvalStatus === 'approved' && monthKey(r.date) === monthStr);
+  const checkerTotal = checkerRows.reduce((s, r) => s + Number(r.total || 0), 0);
+  const supervisorTotal = supervisorRows.reduce((s, r) => s + Number(r.total || 0), 0);
+  const openDayTotal = openDayRows.reduce((s, r) => s + Number(r.total || 0), 0);
+  const totalApproved = checkerTotal + supervisorTotal + openDayTotal;
+  const alreadyPaid = [...checkerRows, ...supervisorRows, ...openDayRows].filter(r => r.paymentStatus === 'Paid').reduce((s, r) => s + Number(r.total || 0), 0);
+  const finalPayable = totalApproved - alreadyPaid;
+  return { staff, checkerRows, supervisorRows, openDayRows, checkerTotal, supervisorTotal, openDayTotal, totalApproved, alreadyPaid, finalPayable };
+}
+function previewSalarySlip() {
+  const staffId = document.getElementById('slip-staff').value;
+  const monthStr = document.getElementById('slip-month').value;
+  if (!staffId || !monthStr) { showToast('Please select a staff member and month.'); return; }
+  const data = computeSalarySlipData(staffId, monthStr);
+  const el = document.getElementById('salary-slip-preview');
+  el.innerHTML = `
+    <div class="total-preview" style="margin-top:14px;flex-direction:column;align-items:stretch;gap:6px;">
+      <div style="display:flex;justify-content:space-between;"><span class="label">Paper Checker</span><span class="num">${money(data.checkerTotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;"><span class="label">Supervisor</span><span class="num">${money(data.supervisorTotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;"><span class="label">Open Day</span><span class="num">${money(data.openDayTotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;"><span class="label">Total Approved</span><span class="num" style="font-weight:600;">${money(data.totalApproved)}</span></div>
+      ${data.alreadyPaid ? `<div style="display:flex;justify-content:space-between;"><span class="label">Already Paid</span><span class="num">- ${money(data.alreadyPaid)}</span></div>` : ''}
+      <div style="display:flex;justify-content:space-between;"><span class="label" style="font-weight:600;">Final Payable</span><span class="value">${money(data.finalPayable)}</span></div>
+    </div>
+    <button type="button" class="btn btn-primary btn-block" style="margin-top:12px;" onclick="downloadSalarySlip('${escapeHtml(staffId)}','${monthStr}')">⬇ Download Salary Slip (PDF)</button>
+  `;
+}
+function downloadSalarySlip(staffId, monthStr) {
+  const data = computeSalarySlipData(staffId, monthStr);
+  const blob = buildSalarySlipPdf(data, monthStr);
+  offerDownload(`salary-slip-${data.staff.staffId}-${monthStr}.pdf`, blob);
+}
 function computeFilteredReportRows(identity) {
   let rows = reportsCombinedRows(identity);
   const parts = [];
@@ -1474,33 +1534,120 @@ function downloadOpenDayReportPdf() {
 
 /* ---------- exports: CSV + PDF ---------- */
 function csvEscape(v) { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function orgHeaderInfo() {
+  const s = state.settings;
+  const name = s.orgName || '';
+  const lines = [s.orgDescription, s.orgLocation, s.orgContact].filter(Boolean);
+  return { name, lines };
+}
+function orgCsvLine() {
+  const org = orgHeaderInfo();
+  if (!org.name) return '';
+  return [org.name, ...org.lines].join(' | ');
+}
 function buildCsv(columns, rows, filterSummary) {
   const lines = [];
+  const orgLine = orgCsvLine();
+  if (orgLine) lines.push(csvEscape(orgLine));
   if (filterSummary) lines.push(csvEscape('Filters: ' + filterSummary));
   lines.push(columns.map(c => csvEscape(c.label)).join(','));
   rows.forEach(r => lines.push(columns.map(c => csvEscape(r[c.key])).join(',')));
   return '﻿' + lines.join('\r\n');
 }
+
+/* ---------- shared low-level PDF helpers ---------- */
+function pdfEscapeText(s) {
+  return String(s ?? '').split('').map(c => c.charCodeAt(0) > 255 ? '?' : c).join('').replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+}
+function dataUrlToBytes(dataUrl) {
+  const base64 = (dataUrl.split(',')[1] || '');
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+function bytesToBinaryString(bytes) {
+  let s = '';
+  const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk) s += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return s;
+}
+function parseJpegDimensions(bytes) {
+  let i = 2;
+  while (i < bytes.length - 9) {
+    if (bytes[i] !== 0xFF) { i++; continue; }
+    const marker = bytes[i + 1];
+    if (marker === 0xFF) { i++; continue; }
+    if (marker === 0xD8 || marker === 0x01 || (marker >= 0xD0 && marker <= 0xD9)) { i += 2; continue; }
+    if (marker >= 0xC0 && marker <= 0xCF && marker !== 0xC4 && marker !== 0xC8 && marker !== 0xCC) {
+      const height = (bytes[i + 5] << 8) | bytes[i + 6];
+      const width = (bytes[i + 7] << 8) | bytes[i + 8];
+      return { width, height };
+    }
+    const len = (bytes[i + 2] << 8) | bytes[i + 3];
+    i += 2 + len;
+  }
+  return null;
+}
+function addLogoImageObject(reserve, setObj) {
+  const dataUrl = state.settings.orgLogo;
+  if (!dataUrl) return null;
+  try {
+    const bytes = dataUrlToBytes(dataUrl);
+    const dims = parseJpegDimensions(bytes);
+    if (!dims || !dims.width || !dims.height) return null;
+    const imgNum = reserve();
+    setObj(imgNum, `<< /Type /XObject /Subtype /Image /Width ${dims.width} /Height ${dims.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>\nstream\n${bytesToBinaryString(bytes)}\nendstream`);
+    let hpt = 40, wpt = 40 * (dims.width / dims.height);
+    if (wpt > 100) { wpt = 100; hpt = 100 * (dims.height / dims.width); }
+    return { objNum: imgNum, wpt, hpt };
+  } catch (e) { return null; }
+}
+function finalizePdfObjects(objects, catalogNum) {
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  objects.forEach((obj, idx) => { offsets.push(pdf.length); pdf += `${idx + 1} 0 obj\n${obj}\nendobj\n`; });
+  const xrefStart = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (let i = 1; i <= objects.length; i++) pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogNum} 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  const bytes = new Uint8Array(pdf.length);
+  for (let i = 0; i < pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xFF;
+  return new Blob([bytes], { type: 'application/pdf' });
+}
+
 function buildPdf(opts) {
   const title = opts.title, subtitle = opts.subtitle || '', columns = opts.columns, dataRows = opts.rows, totalsLines = opts.totalsLines || [];
   const pageWidth = 841.89, pageHeight = 595.28, margin = 30;
-  const rowHeight = 14, topBlock = 62;
-  const bottomReserve = totalsLines.length ? totalsLines.length * 14 + 10 : 0;
-  const rowsPerPage = Math.max(6, Math.floor((pageHeight - margin * 2 - topBlock - bottomReserve) / rowHeight));
-  const pages = [];
-  for (let i = 0; i < dataRows.length; i += rowsPerPage) pages.push(dataRows.slice(i, i + rowsPerPage));
-  if (!pages.length) pages.push([]);
-  const esc = s => String(s ?? '').split('').map(c => c.charCodeAt(0) > 255 ? '?' : c).join('').replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+  const rowHeight = 14;
+  const org = orgHeaderInfo();
   const objects = [];
   function reserve() { objects.push(''); return objects.length; }
   function setObj(n, c) { objects[n - 1] = c; }
   const catalogNum = reserve(), pagesNum = reserve(), fontRegNum = reserve(), fontBoldNum = reserve();
   setObj(fontRegNum, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
   setObj(fontBoldNum, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+  const logo = org.name ? addLogoImageObject(reserve, setObj) : null;
+  const orgHeaderHeight = org.name ? Math.max(logo ? logo.hpt : 0, 15 + org.lines.length * 11) + 12 : 0;
+  const topBlock = 62 + orgHeaderHeight;
+  const bottomReserve = totalsLines.length ? totalsLines.length * 14 + 10 : 0;
+  const rowsPerPage = Math.max(6, Math.floor((pageHeight - margin * 2 - topBlock - bottomReserve) / rowHeight));
+  const pages = [];
+  for (let i = 0; i < dataRows.length; i += rowsPerPage) pages.push(dataRows.slice(i, i + rowsPerPage));
+  if (!pages.length) pages.push([]);
   const kidNums = [];
   pages.forEach((pageRows, pageIdx) => {
     let y = pageHeight - margin;
     const lines = [];
+    let imageOps = '';
+    if (pageIdx === 0 && org.name) {
+      let textX = margin;
+      if (logo) { imageOps = `q\n${logo.wpt.toFixed(2)} 0 0 ${logo.hpt.toFixed(2)} ${margin} ${(y - logo.hpt).toFixed(2)} cm\n/Im0 Do\nQ\n`; textX = margin + logo.wpt + 10; }
+      let oy = y;
+      lines.push({ x: textX, y: oy, size: 13, font: 'F2', t: org.name }); oy -= 14;
+      org.lines.forEach(l => { lines.push({ x: textX, y: oy, size: 8, font: 'F1', t: l }); oy -= 11; });
+      y -= orgHeaderHeight;
+    }
     lines.push({ x: margin, y, size: 13, font: 'F2', t: title }); y -= 16;
     if (subtitle) { lines.push({ x: margin, y, size: 9, font: 'F1', t: subtitle }); y -= 13; }
     lines.push({ x: pageWidth - margin - 80, y: pageHeight - margin, size: 8, font: 'F1', t: `Page ${pageIdx + 1}/${pages.length}` });
@@ -1517,28 +1664,106 @@ function buildPdf(opts) {
       y -= 6;
       totalsLines.forEach(tl => { lines.push({ x: margin, y, size: 10, font: 'F2', t: tl }); y -= 14; });
     }
-    let stream = 'BT\n';
-    lines.forEach(l => { stream += `/${l.font} ${l.size} Tf\n1 0 0 1 ${l.x.toFixed(2)} ${l.y.toFixed(2)} Tm\n(${esc(l.t)}) Tj\n`; });
+    let stream = imageOps + 'BT\n';
+    lines.forEach(l => { stream += `/${l.font} ${l.size} Tf\n1 0 0 1 ${l.x.toFixed(2)} ${l.y.toFixed(2)} Tm\n(${pdfEscapeText(l.t)}) Tj\n`; });
     stream += 'ET\n';
     const contentNum = reserve();
     setObj(contentNum, `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
     const pageNum = reserve();
-    setObj(pageNum, `<< /Type /Page /Parent ${pagesNum} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontRegNum} 0 R /F2 ${fontBoldNum} 0 R >> >> /Contents ${contentNum} 0 R >>`);
+    const resourceXObj = (pageIdx === 0 && logo) ? ` /XObject << /Im0 ${logo.objNum} 0 R >>` : '';
+    setObj(pageNum, `<< /Type /Page /Parent ${pagesNum} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontRegNum} 0 R /F2 ${fontBoldNum} 0 R >>${resourceXObj} >> /Contents ${contentNum} 0 R >>`);
     kidNums.push(pageNum);
   });
   setObj(catalogNum, `<< /Type /Catalog /Pages ${pagesNum} 0 R >>`);
   setObj(pagesNum, `<< /Type /Pages /Kids [${kidNums.map(n => n + ' 0 R').join(' ')}] /Count ${kidNums.length} >>`);
-  let pdf = '%PDF-1.4\n';
-  const offsets = [0];
-  objects.forEach((obj, idx) => { offsets.push(pdf.length); pdf += `${idx + 1} 0 obj\n${obj}\nendobj\n`; });
-  const xrefStart = pdf.length;
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-  for (let i = 1; i <= objects.length; i++) pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogNum} 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
-  const bytes = new Uint8Array(pdf.length);
-  for (let i = 0; i < pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xFF;
-  return new Blob([bytes], { type: 'application/pdf' });
+  return finalizePdfObjects(objects, catalogNum);
 }
+
+function buildSalarySlipPdf(data, monthStr) {
+  const pageWidth = 595.28, pageHeight = 841.89, margin = 40;
+  const org = orgHeaderInfo();
+  const objects = [];
+  function reserve() { objects.push(''); return objects.length; }
+  function setObj(n, c) { objects[n - 1] = c; }
+  const catalogNum = reserve(), pagesNum = reserve(), fontRegNum = reserve(), fontBoldNum = reserve();
+  setObj(fontRegNum, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  setObj(fontBoldNum, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+  const logo = org.name ? addLogoImageObject(reserve, setObj) : null;
+
+  const lines = [];
+  const fills = [];
+  let y = pageHeight - margin;
+  let imageOps = '';
+  let textX = margin;
+  if (logo) { imageOps = `q\n${logo.wpt.toFixed(2)} 0 0 ${logo.hpt.toFixed(2)} ${margin} ${(y - logo.hpt).toFixed(2)} cm\n/Im0 Do\nQ\n`; textX = margin + logo.wpt + 12; }
+  if (org.name) {
+    let oy = y;
+    lines.push({ x: textX, y: oy, size: 16, font: 'F2', t: org.name }); oy -= 16;
+    org.lines.forEach(l => { lines.push({ x: textX, y: oy, size: 9, font: 'F1', t: l }); oy -= 12; });
+    y -= Math.max(logo ? logo.hpt : 0, 16 + org.lines.length * 12) + 16;
+  }
+  fills.push(y);
+  y -= 22;
+  lines.push({ x: pageWidth / 2 - 48, y, size: 15, font: 'F2', t: 'SALARY SLIP' });
+  y -= 26;
+
+  function row2(label1, val1, label2, val2) {
+    lines.push({ x: margin, y, size: 9, font: 'F1', t: label1 });
+    lines.push({ x: margin + 95, y, size: 9.5, font: 'F2', t: val1 });
+    lines.push({ x: pageWidth / 2 + 10, y, size: 9, font: 'F1', t: label2 });
+    lines.push({ x: pageWidth / 2 + 105, y, size: 9.5, font: 'F2', t: val2 });
+    y -= 17;
+  }
+  row2('Staff Name:', data.staff ? data.staff.name : '-', 'Staff ID:', data.staff ? data.staff.staffId : '-');
+  row2('Role(s):', (data.staff && data.staff.roles || []).join(', ') || '-', 'Branch:', (data.staff && data.staff.branch) || '-');
+  row2('Month / Year:', monthLabel(monthStr), 'Generated:', todayStr());
+  y -= 10;
+
+  lines.push({ x: margin, y, size: 9, font: 'F2', t: 'Payment Type' });
+  lines.push({ x: pageWidth - margin - 110, y, size: 9, font: 'F2', t: 'Approved Amount' });
+  y -= 6;
+  fills.push(y);
+  y -= 16;
+  function tableRow(label, amount, bold) {
+    lines.push({ x: margin, y, size: 9.5, font: bold ? 'F2' : 'F1', t: label });
+    lines.push({ x: pageWidth - margin - 110, y, size: 9.5, font: bold ? 'F2' : 'F1', t: moneyPlain(amount) });
+    y -= 17;
+  }
+  tableRow(`Paper Checker Payment (${data.checkerRows.length} record${data.checkerRows.length === 1 ? '' : 's'})`, data.checkerTotal);
+  tableRow(`Supervisor Payment (${data.supervisorRows.length} record${data.supervisorRows.length === 1 ? '' : 's'})`, data.supervisorTotal);
+  tableRow(`Open Day Payment (${data.openDayRows.length} record${data.openDayRows.length === 1 ? '' : 's'})`, data.openDayTotal);
+  y -= 4;
+  fills.push(y);
+  y -= 18;
+  tableRow('Total Approved Amount', data.totalApproved, true);
+  if (data.alreadyPaid) {
+    lines.push({ x: margin, y, size: 9, font: 'F1', t: 'Already Paid' });
+    lines.push({ x: pageWidth - margin - 110, y, size: 9, font: 'F1', t: '- ' + moneyPlain(data.alreadyPaid) });
+    y -= 17;
+  }
+  y -= 6;
+  fills.push(y);
+  y -= 20;
+  lines.push({ x: margin, y, size: 12.5, font: 'F2', t: 'Final Payable Amount' });
+  lines.push({ x: pageWidth - margin - 110, y, size: 12.5, font: 'F2', t: moneyPlain(data.finalPayable) });
+  y -= 34;
+  lines.push({ x: margin, y, size: 7.5, font: 'F1', t: 'This slip includes only approved records for the selected month. Pending or rejected records are excluded.' });
+
+  let stream = imageOps + 'BT\n';
+  lines.forEach(l => { stream += `/${l.font} ${l.size} Tf\n1 0 0 1 ${l.x.toFixed(2)} ${l.y.toFixed(2)} Tm\n(${pdfEscapeText(l.t)}) Tj\n`; });
+  stream += 'ET\n0.7 0.7 0.7 rg\n';
+  fills.forEach(fy => { stream += `${margin} ${fy.toFixed(2)} ${(pageWidth - margin * 2).toFixed(2)} 0.75 re f\n`; });
+
+  const contentNum = reserve();
+  setObj(contentNum, `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+  const pageNum = reserve();
+  const resourceXObj = logo ? ` /XObject << /Im0 ${logo.objNum} 0 R >>` : '';
+  setObj(pageNum, `<< /Type /Page /Parent ${pagesNum} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontRegNum} 0 R /F2 ${fontBoldNum} 0 R >>${resourceXObj} >> /Contents ${contentNum} 0 R >>`);
+  setObj(catalogNum, `<< /Type /Catalog /Pages ${pagesNum} 0 R >>`);
+  setObj(pagesNum, `<< /Type /Pages /Kids [${pageNum} 0 R] /Count 1 >>`);
+  return finalizePdfObjects(objects, catalogNum);
+}
+
 async function offerDownload(filename, data, fallbackCsvText) {
   const dl = await downloadsCapPromise;
   if (!dl) { showToast('Downloads are not available in this view.'); return; }
@@ -1616,7 +1841,28 @@ function downloadSupervisorPdf() {
 function renderSettingsTab(identity) {
   if (identity.type !== 'admin') return emptyState('Not available.');
   return `
-    <div class="section-head"><div><h2>Settings</h2><p>Rates, branches and admin access</p></div></div>
+    <div class="section-head"><div><h2>Settings</h2><p>Organisation, rates, branches and admin access</p></div></div>
+    <div class="card">
+      <h3>Organisation Details</h3>
+      <div class="field">
+        <label>Logo</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          ${state.settings.orgLogo ? `<img src="${state.settings.orgLogo}" alt="Organisation logo" style="width:56px;height:56px;object-fit:contain;border:1px solid var(--border);border-radius:8px;background:#fff;">` : `<div style="width:56px;height:56px;border:1px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:10.5px;text-align:center;">No logo</div>`}
+          <div style="flex:1;">
+            <input type="file" id="org-logo-input" accept="image/*" onchange="handleLogoUpload(this)" style="font-size:13px;">
+            ${state.settings.orgLogo ? `<button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="removeLogo()">Remove Logo</button>` : ''}
+          </div>
+        </div>
+        <p class="helper">Appears on reports, PDFs and salary slips. Images are resized automatically.</p>
+      </div>
+      <form onsubmit="saveOrgDetails(event)">
+        <div class="field"><label>Organisation Name</label><input type="text" id="org-name" value="${escapeHtml(state.settings.orgName)}" placeholder="e.g. Vidya Test Series"></div>
+        <div class="field"><label>Description</label><textarea id="org-description" rows="2" placeholder="e.g. Coaching institute for competitive exam test series">${escapeHtml(state.settings.orgDescription)}</textarea></div>
+        <div class="field"><label>Location / Multiple Centres</label><textarea id="org-location" rows="2" placeholder="e.g. Main Centre: Andheri West; City Centre: Bhatwadi">${escapeHtml(state.settings.orgLocation)}</textarea></div>
+        <div class="field"><label>Contact Details</label><textarea id="org-contact" rows="2" placeholder="e.g. Phone: 98765xxxxx, Email: info@example.com">${escapeHtml(state.settings.orgContact)}</textarea></div>
+        <button type="submit" class="btn btn-primary">Save Organisation Details</button>
+      </form>
+    </div>
     <div class="card">
       <h3>Default Payment Rates</h3>
       <form onsubmit="saveRates(event)">
@@ -1652,6 +1898,49 @@ function renderSettingsTab(identity) {
       <button class="btn btn-danger btn-block" onclick="resetAllData()">Erase All Data</button>
     </div>
   `;
+}
+function saveOrgDetails(e) {
+  e.preventDefault();
+  const next = deepClone(state);
+  next.settings.orgName = document.getElementById('org-name').value.trim();
+  next.settings.orgDescription = document.getElementById('org-description').value.trim();
+  next.settings.orgLocation = document.getElementById('org-location').value.trim();
+  next.settings.orgContact = document.getElementById('org-contact').value.trim();
+  persistAndPublish(next, 'Organisation details saved.');
+}
+function handleLogoUpload(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.'); return; }
+  if (file.size > 3 * 1024 * 1024) { showToast('Logo image is too large (max 3MB).'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 300;
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) { const scale = maxDim / Math.max(w, h); w = Math.round(w * scale); h = Math.round(h * scale); }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const next = deepClone(state);
+      next.settings.orgLogo = jpegDataUrl;
+      persistAndPublish(next, 'Logo updated.');
+    };
+    img.onerror = () => showToast('Could not read that image file.');
+    img.src = reader.result;
+  };
+  reader.onerror = () => showToast('Could not read that file.');
+  reader.readAsDataURL(file);
+}
+function removeLogo() {
+  if (!confirm('Remove the organisation logo?')) return;
+  const next = deepClone(state);
+  next.settings.orgLogo = '';
+  persistAndPublish(next, 'Logo removed.');
 }
 function saveRates(e) {
   e.preventDefault();
