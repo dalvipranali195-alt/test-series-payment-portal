@@ -339,7 +339,7 @@ const defaultState = () => ({
     { staffId: 'S002', name: 'Rohan Mehta', role: 'Supervisor', active: true }
   ],
   checker: [
-    { id: 'c_demo1', date: todayStr(), staffId: 'S001', staffName: 'Anita Sharma', exam: 'Test Series - Mock 3', subject: 'Physics', marks: 100, numPapers: 40, rate: 15, total: 600, status: 'Pending' }
+    { id: 'c_demo1', date: todayStr(), staffId: 'S001', staffName: 'Anita Sharma', exam: 'Test Series - Mock 3', branch: 'Main Branch', subject: 'Physics', marks: 100, numPapers: 40, rate: 15, answerKeyCharge: 100, total: 700, status: 'Pending' }
   ],
   supervisor: [
     { id: 'v_demo1', date: todayStr(), staffId: 'S002', staffName: 'Rohan Mehta', exam: 'Test Series - Mock 3', detail: 'Hall A, morning session', qty: 1, rate: 300, total: 300, status: 'Paid' }
@@ -588,16 +588,18 @@ function renderChecker() {
     </div>
     ${rows.length ? `
       <div class="table-wrap"><table>
-        <thead><tr><th>Date</th><th>Staff</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Papers</th><th>Rate</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Papers</th><th>Rate</th><th>Answer Key</th><th>Total</th><th>Status</th><th></th></tr></thead>
         <tbody>
           ${rows.map(r => `<tr>
             <td class="num">${escapeHtml(r.date)}</td>
             <td>${escapeHtml(r.staffName)}</td>
+            <td>${escapeHtml(r.branch)}</td>
             <td>${escapeHtml(r.exam)}</td>
             <td>${escapeHtml(r.subject)}</td>
             <td class="num">${escapeHtml(r.marks)}</td>
             <td class="num">${escapeHtml(r.numPapers)}</td>
             <td class="num">${money(r.rate)}</td>
+            <td class="num">${money(r.answerKeyCharge)}</td>
             <td class="num">${money(r.total)}</td>
             <td><button class="pill pill-btn ${r.status === 'Paid' ? 'success' : 'warning'}" onclick="toggleStatus('checker','${r.id}')">${r.status}</button></td>
             <td class="row-actions">
@@ -621,12 +623,17 @@ function openCheckerModal(id) {
         <div class="field"><label>Staff</label><select id="ck-staff" required onchange="recalcCheckerTotal()">${staffOptions(editing ? editing.staffId : '')}</select></div>
       </div>
       <div class="field"><label>Test / Exam Name</label><input type="text" id="ck-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required placeholder="e.g. Test Series - Mock 4"></div>
+      <div class="field"><label>Branch</label><input type="text" id="ck-branch" value="${editing ? escapeHtml(editing.branch) : ''}" placeholder="e.g. Main Branch"></div>
       <div class="field"><label>Subject</label><input type="text" id="ck-subject" value="${editing ? escapeHtml(editing.subject) : ''}" required placeholder="e.g. Physics"></div>
       <div class="form-row">
         <div class="field"><label>Paper Marks (out of)</label><input type="number" id="ck-marks" value="${editing ? editing.marks : ''}" min="0" required></div>
         <div class="field"><label>No. of Papers Checked</label><input type="number" id="ck-numPapers" value="${editing ? editing.numPapers : ''}" min="0" required oninput="recalcCheckerTotal()"></div>
       </div>
-      <div class="field"><label>Rate per Paper</label><input type="number" id="ck-rate" value="${editing ? editing.rate : defaultRate}" min="0" step="0.01" required oninput="recalcCheckerTotal()"></div>
+      <div class="form-row">
+        <div class="field"><label>Rate per Paper</label><input type="number" id="ck-rate" value="${editing ? editing.rate : defaultRate}" min="0" step="0.01" required oninput="recalcCheckerTotal()"></div>
+        <div class="field"><label>Answer Key Charge (extra)</label><input type="number" id="ck-answerKeyCharge" value="${editing ? editing.answerKeyCharge : 0}" min="0" step="0.01" oninput="recalcCheckerTotal()"></div>
+      </div>
+      <p class="helper" style="margin:-6px 0 4px;">Answer Key Charge is a one-time extra amount added on top of papers × rate.</p>
       <div class="total-preview"><span class="label">Total Payment</span><span class="value num" id="ck-total-preview">${money(editing ? editing.total : (defaultRate || 0))}</span></div>
       <div class="field" style="margin-top:14px;"><label>Payment Status</label>
         <select id="ck-status">
@@ -645,8 +652,9 @@ function openCheckerModal(id) {
 function recalcCheckerTotal() {
   const n = Number(document.getElementById('ck-numPapers')?.value || 0);
   const r = Number(document.getElementById('ck-rate')?.value || 0);
+  const a = Number(document.getElementById('ck-answerKeyCharge')?.value || 0);
   const el = document.getElementById('ck-total-preview');
-  if (el) el.textContent = money(n * r);
+  if (el) el.textContent = money(n * r + a);
 }
 function submitChecker(e, editingId) {
   e.preventDefault();
@@ -655,13 +663,15 @@ function submitChecker(e, editingId) {
   if (!staff) { showToast('Please add a staff member first.'); return; }
   const numPapers = Number(document.getElementById('ck-numPapers').value) || 0;
   const rate = Number(document.getElementById('ck-rate').value) || 0;
+  const answerKeyCharge = Number(document.getElementById('ck-answerKeyCharge').value) || 0;
   const rec = {
     date: document.getElementById('ck-date').value,
     staffId, staffName: staff.name,
     exam: document.getElementById('ck-exam').value.trim(),
+    branch: document.getElementById('ck-branch').value.trim(),
     subject: document.getElementById('ck-subject').value.trim(),
     marks: Number(document.getElementById('ck-marks').value) || 0,
-    numPapers, rate, total: numPapers * rate,
+    numPapers, rate, answerKeyCharge, total: numPapers * rate + answerKeyCharge,
     status: document.getElementById('ck-status').value
   };
   if (editingId) {
