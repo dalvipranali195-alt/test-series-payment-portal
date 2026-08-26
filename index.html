@@ -1,512 +1,582 @@
+<meta charset="utf-8">
 <title>Staff Payment Portal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
+<script id="app-state" type="application/json">{}</script>
+<script id="app-script">
+'use strict';
+
+const STYLE_CSS = `
   :root {
-    --bg: #F3F5F3;
-    --surface: #FFFFFF;
-    --surface-2: #EBEFEC;
-    --border: #DCE3DE;
-    --text: #1B231E;
-    --text-muted: #5C6A61;
-    --accent: #235C52;
-    --accent-strong: #17423B;
-    --accent-soft: #DCEAE6;
-    --on-accent: #F4FBF9;
-    --success: #276B41;
-    --success-soft: #E1F0E4;
-    --warning: #9A6A16;
-    --warning-soft: #FBEEDA;
-    --danger: #A4382F;
-    --danger-soft: #F7E4E1;
-    --shadow: 0 1px 2px rgba(20, 30, 25, 0.06), 0 6px 20px rgba(20, 30, 25, 0.05);
-    --radius: 10px;
-    --font-display: "Sora", system-ui, sans-serif;
-    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --bg: #F3F5F3; --surface: #FFFFFF; --surface-2: #EBEFEC; --border: #DCE3DE;
+    --text: #1B231E; --text-muted: #5C6A61; --accent: #235C52; --accent-strong: #17423B;
+    --accent-soft: #DCEAE6; --on-accent: #F4FBF9; --success: #276B41; --success-soft: #E1F0E4;
+    --warning: #9A6A16; --warning-soft: #FBEEDA; --danger: #A4382F; --danger-soft: #F7E4E1;
+    --shadow: 0 1px 2px rgba(20,30,25,.06), 0 6px 20px rgba(20,30,25,.05); --radius: 10px;
+    --font-display: "Sora", system-ui, sans-serif; --font-body: "IBM Plex Sans", system-ui, sans-serif;
     --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #101613;
-      --surface: #171E1A;
-      --surface-2: #1E2621;
-      --border: #2B3630;
-      --text: #E7EEE9;
-      --text-muted: #93A29A;
-      --accent: #55B39F;
-      --accent-strong: #7CCAB8;
-      --accent-soft: #1E332E;
-      --on-accent: #08130F;
-      --success: #6FC38C;
-      --success-soft: #17281C;
-      --warning: #E0AC53;
-      --warning-soft: #2E2413;
-      --danger: #E38A80;
-      --danger-soft: #301E1B;
-      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+      --bg: #101613; --surface: #171E1A; --surface-2: #1E2621; --border: #2B3630;
+      --text: #E7EEE9; --text-muted: #93A29A; --accent: #55B39F; --accent-strong: #7CCAB8;
+      --accent-soft: #1E332E; --on-accent: #08130F; --success: #6FC38C; --success-soft: #17281C;
+      --warning: #E0AC53; --warning-soft: #2E2413; --danger: #E38A80; --danger-soft: #301E1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
     }
   }
   :root[data-theme="dark"] {
-    --bg: #101613;
-    --surface: #171E1A;
-    --surface-2: #1E2621;
-    --border: #2B3630;
-    --text: #E7EEE9;
-    --text-muted: #93A29A;
-    --accent: #55B39F;
-    --accent-strong: #7CCAB8;
-    --accent-soft: #1E332E;
-    --on-accent: #08130F;
-    --success: #6FC38C;
-    --success-soft: #17281C;
-    --warning: #E0AC53;
-    --warning-soft: #2E2413;
-    --danger: #E38A80;
-    --danger-soft: #301E1B;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+    --bg: #101613; --surface: #171E1A; --surface-2: #1E2621; --border: #2B3630;
+    --text: #E7EEE9; --text-muted: #93A29A; --accent: #55B39F; --accent-strong: #7CCAB8;
+    --accent-soft: #1E332E; --on-accent: #08130F; --success: #6FC38C; --success-soft: #17281C;
+    --warning: #E0AC53; --warning-soft: #2E2413; --danger: #E38A80; --danger-soft: #301E1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
   }
-
   * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0; background: var(--bg); color: var(--text);
-    font-family: var(--font-body); -webkit-tap-highlight-color: transparent;
-  }
+  html, body { margin:0; padding:0; background: var(--bg); color: var(--text); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; }
   body { min-height: 100vh; }
-  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin:0; }
   input, select, button, textarea { font-family: inherit; font-size: 16px; }
   button { cursor: pointer; }
   ::selection { background: var(--accent-soft); }
   .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-  #login-screen {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 24px; background: var(--bg);
-  }
-  .login-card {
-    width: 100%; max-width: 360px; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 32px 28px; box-shadow: var(--shadow);
-  }
-  .login-mark {
-    width: 44px; height: 44px; border-radius: 10px; background: var(--accent);
-    color: var(--on-accent); display: flex; align-items: center; justify-content: center;
-    margin-bottom: 18px;
-  }
-  .login-card h1 { font-size: 21px; color: var(--text); margin-bottom: 4px; }
-  .login-card p.sub { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
-  .field { margin-bottom: 16px; }
-  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
-  .field input, .field select, .field textarea {
-    width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--surface); color: var(--text); outline: none;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
-  }
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 11px 18px; border-radius: 8px; border: 1px solid transparent;
-    font-weight: 600; font-size: 15px; min-height: 44px; transition: filter .15s, background .15s;
-  }
-  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .btn-primary { background: var(--accent); color: var(--on-accent); width: 100%; }
+  #login-screen { min-height: 100vh; display:flex; align-items:center; justify-content:center; padding:24px; background: var(--bg); }
+  .login-card { width:100%; max-width:360px; background: var(--surface); border:1px solid var(--border); border-radius:14px; padding:32px 28px; box-shadow: var(--shadow); }
+  .login-mark { width:44px; height:44px; border-radius:10px; background: var(--accent); color: var(--on-accent); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+  .login-card h1 { font-size:21px; color: var(--text); margin-bottom:4px; }
+  .login-card p.sub { color: var(--text-muted); font-size:14px; margin:0 0 20px; }
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:13px; font-weight:500; color: var(--text-muted); margin-bottom:6px; }
+  .field input, .field select, .field textarea { width:100%; padding:11px 12px; border:1px solid var(--border); border-radius:8px; background: var(--surface); color: var(--text); outline:none; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 18px; border-radius:8px; border:1px solid transparent; font-weight:600; font-size:15px; min-height:44px; transition: filter .15s, background .15s; }
+  .btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); width:100%; }
   .btn-primary:hover { filter: brightness(1.08); }
   .btn-ghost { background: transparent; color: var(--accent); border-color: var(--border); }
   .btn-ghost:hover { background: var(--surface-2); }
   .btn-danger { background: transparent; color: var(--danger); border-color: var(--border); }
   .btn-danger:hover { background: var(--danger-soft); }
-  .btn-sm { min-height: 34px; padding: 6px 12px; font-size: 13px; }
-  .btn-block { width: 100%; }
-  .login-error { color: var(--danger); font-size: 13px; margin: -8px 0 14px; min-height: 16px; }
-  .login-hint { margin-top: 18px; font-size: 12px; color: var(--text-muted); background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
-
-  #app { display: none; min-height: 100vh; flex-direction: column; }
-  .app-shell {
-    max-width: 560px; margin: 0 auto; width: 100%; min-height: 100vh;
-    display: flex; flex-direction: column; background: var(--bg);
-    box-shadow: var(--shadow);
-  }
-  header.topbar {
-    position: sticky; top: 0; z-index: 20; background: var(--surface);
-    border-bottom: 1px solid var(--border); padding: 14px 18px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  }
-  header.topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  header.topbar .brand .mark {
-    width: 32px; height: 32px; border-radius: 8px; background: var(--accent); color: var(--on-accent);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  header.topbar .brand .titles { min-width: 0; }
-  header.topbar .brand h1 { font-size: 15px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  header.topbar .brand .tab-label { font-size: 12px; color: var(--text-muted); }
-  header.topbar .icon-btn {
-    background: transparent; border: 1px solid var(--border); border-radius: 8px;
-    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: var(--text-muted);
-  }
+  .btn-sm { min-height:34px; padding:6px 12px; font-size:13px; }
+  .btn-block { width:100%; }
+  .login-error { color: var(--danger); font-size:13px; margin:-8px 0 14px; min-height:16px; }
+  .login-hint { margin-top:18px; font-size:12px; color: var(--text-muted); background: var(--surface-2); border-radius:8px; padding:10px 12px; }
+  .login-toggle { display:flex; background: var(--surface-2); border-radius:8px; padding:3px; gap:2px; margin-bottom:20px; }
+  .login-toggle button { flex:1; border:none; background:transparent; padding:9px 6px; border-radius:6px; font-size:13.5px; font-weight:600; color: var(--text-muted); }
+  .login-toggle button.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+  #app { display:none; min-height:100vh; flex-direction:column; }
+  .app-shell { max-width:560px; margin:0 auto; width:100%; min-height:100vh; display:flex; flex-direction:column; background: var(--bg); box-shadow: var(--shadow); }
+  .readonly-banner { background: var(--warning-soft); color: var(--warning); padding:8px 16px; font-size:13px; text-align:center; font-weight:500; }
+  header.topbar { position:sticky; top:0; z-index:20; background: var(--surface); border-bottom:1px solid var(--border); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  header.topbar .brand { display:flex; align-items:center; gap:10px; min-width:0; }
+  header.topbar .brand .mark { width:32px; height:32px; border-radius:8px; background: var(--accent); color: var(--on-accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  header.topbar .brand .titles { min-width:0; }
+  header.topbar .brand h1 { font-size:15px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  header.topbar .brand .tab-label { font-size:12px; color: var(--text-muted); }
+  header.topbar .icon-btn { background:transparent; border:1px solid var(--border); border-radius:8px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color: var(--text-muted); }
   header.topbar .icon-btn:hover { background: var(--surface-2); color: var(--danger); }
-
-  main#content { flex: 1; padding: 18px 16px 96px; }
-  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-  .section-head h2 { font-size: 19px; }
-  .section-head p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; }
-
-  nav.tabbar {
-    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 560px; background: var(--surface); border-top: 1px solid var(--border);
-    display: flex; z-index: 30; padding-bottom: env(safe-area-inset-bottom, 0);
-  }
-  nav.tabbar button {
-    flex: 1; background: transparent; border: none; padding: 8px 2px 10px;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    color: var(--text-muted); font-size: 10.5px; font-weight: 500;
-  }
-  nav.tabbar button svg { width: 20px; height: 20px; }
+  main#content { flex:1; padding:18px 16px 96px; }
+  .section-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .section-head h2 { font-size:19px; }
+  .section-head p { margin:2px 0 0; color: var(--text-muted); font-size:13px; }
+  nav.tabbar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:560px; background: var(--surface); border-top:1px solid var(--border); display:flex; z-index:30; padding-bottom: env(safe-area-inset-bottom, 0); }
+  nav.tabbar button { flex:1; background:transparent; border:none; padding:8px 2px 10px; display:flex; flex-direction:column; align-items:center; gap:3px; color: var(--text-muted); font-size:10.5px; font-weight:500; }
+  nav.tabbar button svg { width:20px; height:20px; }
   nav.tabbar button.active { color: var(--accent); }
-  nav.tabbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-
-  .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow);
-  }
-  .card h3 { font-size: 15px; margin-bottom: 12px; }
-
-  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .stat-tile {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px; box-shadow: var(--shadow);
-  }
-  .stat-tile .label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
-  .stat-tile .value { font-family: var(--font-mono); font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stat-tile.accent { background: var(--accent-soft); border-color: transparent; }
+  nav.tabbar button:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+  .card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:16px; margin-bottom:14px; box-shadow: var(--shadow); }
+  .card h3 { font-size:15px; margin-bottom:12px; }
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .stat-tile { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:14px; box-shadow: var(--shadow); }
+  .stat-tile .label { font-size:11.5px; color: var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+  .stat-tile .value { font-family: var(--font-mono); font-size:19px; font-weight:600; font-variant-numeric: tabular-nums; }
+  .stat-tile.accent { background: var(--accent-soft); border-color:transparent; }
   .stat-tile.accent .value { color: var(--accent-strong); }
   .stat-tile.warning .value { color: var(--warning); }
-
-  .pill {
-    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
-    font-size: 12px; font-weight: 600;
-  }
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; font-size:12px; font-weight:600; }
   .pill.success { background: var(--success-soft); color: var(--success); }
   .pill.warning { background: var(--warning-soft); color: var(--warning); }
   .pill.danger { background: var(--danger-soft); color: var(--danger); }
   .pill.neutral { background: var(--surface-2); color: var(--text-muted); }
-  .pill-btn { border: none; cursor: pointer; }
-
-  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 13.5px; }
-  thead th {
-    position: sticky; top: 0; background: var(--surface-2); text-align: left; padding: 10px 12px;
-    font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--text-muted); white-space: nowrap;
-  }
-  tbody td { padding: 10px 12px; border-top: 1px solid var(--border); white-space: nowrap; }
+  .pill-btn { border:none; cursor:pointer; }
+  .role-tags { display:flex; flex-wrap:wrap; gap:4px; }
+  .checkbox-group { display:flex; flex-direction:column; gap:8px; }
+  .checkbox-group label { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; color: var(--text); }
+  .checkbox-group input { width:18px; height:18px; }
+  .table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  table { border-collapse:collapse; width:100%; min-width:640px; font-size:13.5px; }
+  thead th { position:sticky; top:0; background: var(--surface-2); text-align:left; padding:10px 12px; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color: var(--text-muted); white-space:nowrap; }
+  tbody td { padding:10px 12px; border-top:1px solid var(--border); white-space:nowrap; }
   tbody tr:hover { background: var(--surface-2); }
-  .row-actions { display: flex; gap: 6px; }
-
-  .empty-state {
-    text-align: center; padding: 36px 20px; color: var(--text-muted); font-size: 14px;
-    background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius);
-  }
-  .empty-state svg { width: 34px; height: 34px; margin-bottom: 10px; color: var(--text-muted); opacity: .6; }
-
-  .fab {
-    position: fixed; left: 50%; transform: translateX(calc(-50% + 220px));
-    bottom: 78px; z-index: 25; width: 52px; height: 52px; border-radius: 50%;
-    background: var(--accent); color: var(--on-accent); border: none; box-shadow: var(--shadow);
-    display: flex; align-items: center; justify-content: center;
-  }
-  @media (max-width: 599px) { .fab { transform: translateX(0); right: 16px; left: auto; } }
-
-  .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(10, 16, 12, .45); z-index: 50;
-    display: flex; align-items: flex-end; justify-content: center;
-  }
-  @media (min-width: 601px) { .modal-backdrop { align-items: center; } }
-  .modal {
-    background: var(--surface); width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
-    border-radius: 16px 16px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0));
-    box-shadow: var(--shadow);
-  }
-  @media (min-width: 601px) { .modal { border-radius: 14px; } }
-  .modal h3 { font-size: 17px; margin-bottom: 16px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .form-actions { display: flex; gap: 10px; margin-top: 18px; }
-  .form-actions .btn { flex: 1; }
-  .helper { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-  .total-preview {
-    background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; margin-top: 4px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .total-preview .label { font-size: 13px; color: var(--text-muted); }
-  .total-preview .value { font-family: var(--font-mono); font-size: 19px; font-weight: 600; color: var(--accent-strong); }
-
-  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-  .filter-bar select, .filter-bar input { padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
-  .segmented { display: flex; background: var(--surface-2); border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 14px; }
-  .segmented button { flex: 1; border: none; background: transparent; padding: 8px 6px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .row-actions { display:flex; gap:6px; }
+  .empty-state { text-align:center; padding:36px 20px; color: var(--text-muted); font-size:14px; background: var(--surface); border:1px dashed var(--border); border-radius: var(--radius); }
+  .empty-state svg { width:34px; height:34px; margin-bottom:10px; color: var(--text-muted); opacity:.6; }
+  .modal-backdrop { position:fixed; inset:0; background: rgba(10,16,12,.45); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
+  @media (min-width:601px) { .modal-backdrop { align-items:center; } }
+  .modal { background: var(--surface); width:100%; max-width:480px; max-height:88vh; overflow-y:auto; border-radius:16px 16px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom, 0)); box-shadow: var(--shadow); }
+  @media (min-width:601px) { .modal { border-radius:14px; } }
+  .modal h3 { font-size:17px; margin-bottom:16px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-actions { display:flex; gap:10px; margin-top:18px; }
+  .form-actions .btn { flex:1; }
+  .helper { font-size:12px; color: var(--text-muted); margin-top:4px; }
+  .total-preview { background: var(--accent-soft); border-radius:8px; padding:12px 14px; margin-top:4px; display:flex; align-items:center; justify-content:space-between; }
+  .total-preview .label { font-size:13px; color: var(--text-muted); }
+  .total-preview .value { font-family: var(--font-mono); font-size:19px; font-weight:600; color: var(--accent-strong); }
+  .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .filter-bar select, .filter-bar input { padding:9px 10px; border-radius:8px; border:1px solid var(--border); background: var(--surface); color: var(--text); }
+  .segmented { display:flex; background: var(--surface-2); border-radius:8px; padding:3px; gap:2px; margin-bottom:14px; }
+  .segmented button { flex:1; border:none; background:transparent; padding:8px 6px; border-radius:6px; font-size:13px; font-weight:500; color: var(--text-muted); }
   .segmented button.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+  .export-row { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .export-row .btn { flex:1; min-width:140px; }
+  .branch-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; background: var(--surface); }
+  .toast { position:fixed; bottom:96px; left:50%; transform:translateX(-50%); z-index:60; background: var(--accent-strong); color: var(--on-accent); padding:10px 18px; border-radius:999px; font-size:13.5px; font-weight:500; box-shadow: var(--shadow); opacity:0; pointer-events:none; transition: opacity .2s, transform .2s; }
+  .toast.show { opacity:1; transform: translateX(-50%) translateY(-4px); }
+  @media (prefers-reduced-motion: reduce) { * { transition:none!important; animation:none!important; } }
+`;
 
-  .toast {
-    position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); z-index: 60;
-    background: var(--accent-strong); color: var(--on-accent); padding: 10px 18px; border-radius: 999px;
-    font-size: 13.5px; font-weight: 500; box-shadow: var(--shadow); opacity: 0; pointer-events: none;
-    transition: opacity .2s, transform .2s;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+const ICONS = {
+  mark: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>',
+  logout: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+  staff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  records: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  approvals: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+  reports: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+};
 
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
-</style>
-
+const BODY_HTML = `
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-mark">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
-    </div>
+    <div class="login-mark">${ICONS.mark}</div>
     <h1>Staff Payment Portal</h1>
-    <p class="sub">Sign in to manage staff and payments.</p>
-    <form id="login-form" onsubmit="handleLogin(event)">
-      <div class="field">
-        <label for="login-password">Admin Password</label>
-        <input type="password" id="login-password" autocomplete="current-password" required>
-      </div>
-      <div class="login-error" id="login-error"></div>
-      <button type="submit" class="btn btn-primary">Log In</button>
+    <p class="sub">Sign in to continue.</p>
+    <div class="login-toggle">
+      <button type="button" id="lt-admin" class="active" onclick="setLoginMode('admin')">Main Admin</button>
+      <button type="button" id="lt-staff" onclick="setLoginMode('staff')">Staff Login</button>
+    </div>
+    <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+      <div class="field"><label for="login-password">Admin Password</label><input type="password" id="login-password" autocomplete="current-password" required></div>
+      <div class="login-error" id="admin-login-error"></div>
+      <button type="submit" class="btn btn-primary btn-block">Log In as Admin</button>
     </form>
-    <div class="login-hint">First time here? The default password is <strong>admin123</strong>. You can change it later under <strong>Settings</strong>.</div>
+    <form id="staff-login-form" style="display:none;" onsubmit="handleStaffLogin(event)">
+      <div class="field"><label for="login-staffId">Select Your Name</label><select id="login-staffId"></select></div>
+      <div class="field"><label for="login-pin">PIN</label><input type="password" inputmode="numeric" pattern="[0-9]*" id="login-pin" maxlength="6" required></div>
+      <div class="login-error" id="staff-login-error"></div>
+      <button type="submit" class="btn btn-primary btn-block">Log In</button>
+    </form>
+    <div class="login-hint">Main Admin default password: <strong>admin123</strong>. Staff PINs are set by the Main Admin in Staff Management.</div>
   </div>
 </div>
-
 <div id="app">
   <div class="app-shell">
     <header class="topbar">
       <div class="brand">
-        <div class="mark">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
-        </div>
-        <div class="titles">
-          <h1>Staff Payment Portal</h1>
-          <div class="tab-label" id="tab-label">Dashboard</div>
-        </div>
+        <div class="mark">${ICONS.mark}</div>
+        <div class="titles"><h1>Staff Payment Portal</h1><div class="tab-label" id="tab-label">Dashboard</div></div>
       </div>
-      <button class="icon-btn" onclick="handleLogout()" title="Log out" aria-label="Log out">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
+      <button class="icon-btn" onclick="handleLogout()" title="Log out" aria-label="Log out">${ICONS.logout}</button>
     </header>
-
+    <div class="readonly-banner" id="readonly-banner" style="display:none;">Read-only access — ask the Main Admin to grant edit access to save changes.</div>
     <main id="content"></main>
-
-    <nav class="tabbar" id="tabbar">
-      <button data-tab="dashboard" onclick="switchTab('dashboard')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-        Dashboard
-      </button>
-      <button data-tab="staff" onclick="switchTab('staff')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Staff
-      </button>
-      <button data-tab="checker" onclick="switchTab('checker')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        Checker
-      </button>
-      <button data-tab="supervisor" onclick="switchTab('supervisor')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
-        Supervise
-      </button>
-      <button data-tab="reports" onclick="switchTab('reports')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Reports
-      </button>
-      <button data-tab="settings" onclick="switchTab('settings')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Settings
-      </button>
-    </nav>
+    <nav class="tabbar" id="tabbar"></nav>
   </div>
 </div>
-
 <div id="modal-root"></div>
 <div class="toast" id="toast"></div>
+`;
 
-<script>
-'use strict';
+document.head.insertAdjacentHTML('beforeend', '<style>' + STYLE_CSS + '</style>');
 
-/* ---------- storage ---------- */
-const STORE_KEY = 'tspp_v1';
-const defaultState = () => ({
-  auth: false,
-  settings: { password: 'admin123', checkerRate: 15, supervisorRate: 300 },
-  staff: [
-    { staffId: 'S001', name: 'Anita Sharma', role: 'Paper Checker', active: true },
-    { staffId: 'S002', name: 'Rohan Mehta', role: 'Supervisor', active: true }
-  ],
-  checker: [
-    { id: 'c_demo1', date: todayStr(), staffId: 'S001', staffName: 'Anita Sharma', exam: 'Test Series - Mock 3', branch: 'Main Branch', subject: 'Physics', marks: 100, numPapers: 40, rate: 15, answerKeyCharge: 100, total: 700, status: 'Pending' }
-  ],
-  supervisor: [
-    { id: 'v_demo1', date: todayStr(), staffId: 'S002', staffName: 'Rohan Mehta', exam: 'Test Series - Mock 3', detail: 'Hall A, morning session', qty: 1, rate: 300, total: 300, status: 'Paid' }
-  ]
-});
+const APP_SCRIPT_SOURCE = document.currentScript.textContent;
+function mountShell(fn) {
+  document.body.insertAdjacentHTML('beforeend', BODY_HTML);
+  fn();
+}
+function whenBodyReady(fn) {
+  if (document.body) mountShell(fn);
+  else document.addEventListener('DOMContentLoaded', () => mountShell(fn));
+}
 
+/* ---------- constants ---------- */
+const ROLE_TAGS = ['Branch Coordinator', 'Paper Checker', 'Supervisor', 'Open Day Examiner'];
+const SESSION_KEY = 'tspp_session_v2';
+const UI_KEY = 'tspp_ui_v2';
+
+/* ---------- state model ---------- */
 function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function defaultState() {
+  return {
+    schemaVersion: 2,
+    settings: { adminPassword: 'admin123', checkerRate: 15, supervisorRate: 75, openDayRate: 500 },
+    branches: ['Main Branch', 'City Branch'],
+    staff: [
+      { staffId: 'S001', name: 'Anita Sharma', roles: ['Paper Checker'], branch: 'Main Branch', session: '2026', contact: '9876543210', email: 'anita@example.com', active: true, pin: '1234' },
+      { staffId: 'S002', name: 'Rohan Mehta', roles: ['Supervisor'], branch: 'Main Branch', session: '2026', contact: '9876500000', email: '', active: true, pin: '1234' },
+      { staffId: 'S003', name: 'Priya Verma', roles: ['Branch Coordinator'], branch: 'Main Branch', session: '2026', contact: '9876511111', email: 'priya@example.com', active: true, pin: '1234' },
+      { staffId: 'S004', name: 'Karan Singh', roles: ['Open Day Examiner'], branch: 'City Branch', session: '2026', contact: '9876522222', email: '', active: true, pin: '1234' }
+    ],
+    checker: [
+      { id: 'c_demo1', dateOfPaper: todayStr(), branch: 'Main Branch', staffId: 'S001', staffName: 'Anita Sharma', exam: 'Test Series - Mock 3', subject: 'Physics', marks: 100, numPapers: 40, rate: 15, answerKeyCharge: 100, total: 700, issuedBy: 'S003', issuedByName: 'Priya Verma', collectedBy: 'S003', collectedByName: 'Priya Verma', approvalStatus: 'approved', paymentStatus: 'Pending', rejectReason: '', submittedAt: todayStr() }
+    ],
+    supervisor: [
+      { id: 'v_demo1', date: todayStr(), branch: 'Main Branch', session: '2026', staffId: 'S002', staffName: 'Rohan Mehta', exam: 'Test Series - Mock 3', detail: 'Hall A, morning session', workingHours: 4, rate: 75, total: 300, approvalStatus: 'pending', paymentStatus: 'Pending', rejectReason: '', submittedAt: todayStr() }
+    ],
+    openday: [
+      { id: 'o_demo1', date: todayStr(), branch: 'City Branch', staffId: 'S004', staffName: 'Karan Singh', subject: 'Mathematics', syllabus: 'Full syllabus mock test', charge: 500, total: 500, approvalStatus: 'draft', paymentStatus: 'Pending', rejectReason: '', submittedAt: '' }
+    ]
+  };
+}
+
+function migrateState(raw) {
+  const base = defaultState();
+  if (!raw || typeof raw !== 'object' || !Array.isArray(raw.staff)) return base;
+  const out = {};
+  out.settings = Object.assign({}, base.settings, raw.settings || {});
+  out.branches = Array.isArray(raw.branches) && raw.branches.length ? raw.branches : base.branches;
+  out.staff = raw.staff.map(s => ({
+    staffId: s.staffId, name: s.name,
+    roles: Array.isArray(s.roles) ? s.roles : (s.role ? (s.role === 'Both' ? ['Paper Checker', 'Supervisor'] : (ROLE_TAGS.includes(s.role) ? [s.role] : [])) : []),
+    branch: s.branch || out.branches[0], session: s.session || '', contact: s.contact || '',
+    email: s.email || '', active: s.active !== false, pin: s.pin || '1234'
+  }));
+  out.checker = Array.isArray(raw.checker) ? raw.checker.map(r => ({
+    id: r.id, dateOfPaper: r.dateOfPaper || r.date || todayStr(), branch: r.branch || '',
+    staffId: r.staffId, staffName: r.staffName, exam: r.exam, subject: r.subject,
+    marks: r.marks || 0, numPapers: r.numPapers || 0, rate: r.rate || 0, answerKeyCharge: r.answerKeyCharge || 0,
+    total: r.total != null ? r.total : ((r.numPapers || 0) * (r.rate || 0) + (r.answerKeyCharge || 0)),
+    issuedBy: r.issuedBy || '', issuedByName: r.issuedByName || '', collectedBy: r.collectedBy || '', collectedByName: r.collectedByName || '',
+    approvalStatus: r.approvalStatus || (r.status ? 'approved' : 'draft'), paymentStatus: r.paymentStatus || r.status || 'Pending',
+    rejectReason: r.rejectReason || '', submittedAt: r.submittedAt || ''
+  })) : base.checker;
+  out.supervisor = Array.isArray(raw.supervisor) ? raw.supervisor.map(r => ({
+    id: r.id, date: r.date || todayStr(), branch: r.branch || '', session: r.session || '',
+    staffId: r.staffId, staffName: r.staffName, exam: r.exam, detail: r.detail || '',
+    workingHours: r.workingHours != null ? r.workingHours : (r.qty != null ? r.qty : 0), rate: r.rate || 0,
+    total: r.total != null ? r.total : ((r.workingHours != null ? r.workingHours : (r.qty || 0)) * (r.rate || 0)),
+    approvalStatus: r.approvalStatus || (r.status ? 'approved' : 'draft'), paymentStatus: r.paymentStatus || r.status || 'Pending',
+    rejectReason: r.rejectReason || '', submittedAt: r.submittedAt || ''
+  })) : base.supervisor;
+  out.openday = Array.isArray(raw.openday) ? raw.openday : base.openday;
+  out.schemaVersion = 2;
+  return out;
+}
 
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    return Object.assign(defaultState(), parsed, {
-      settings: Object.assign(defaultState().settings, parsed.settings || {})
-    });
+    const el = document.getElementById('app-state');
+    const raw = el && el.textContent.trim() ? JSON.parse(el.textContent) : null;
+    return migrateState(raw);
   } catch (e) { return defaultState(); }
 }
-function saveState() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
 
 let state = loadState();
+let readOnly = false;
 let currentTab = 'dashboard';
+let recordsSubTab = 'checker';
+let adminRecordsBranchFilter = '';
+let approvalsFilter = 'pending';
+let reportMode = 'staff';
 
-/* ---------- helpers ---------- */
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function money(n) {
-  const v = Number(n) || 0;
-  return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 2 });
-}
-function uid(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => t.classList.remove('show'), 2200);
-}
-function activeStaff() { return state.staff.filter(s => s.active); }
+/* ---------- capability handles ---------- */
+const artifactCapPromise = (window.claude && window.claude.use) ? window.claude.use('artifact') : Promise.resolve(null);
+const downloadsCapPromise = (window.claude && window.claude.use) ? window.claude.use('downloads') : Promise.resolve(null);
+
+/* ---------- local (per-device) session + ui ---------- */
+function saveSession(s) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch (e) {} }
+function loadSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; } }
+function clearSession() { try { localStorage.removeItem(SESSION_KEY); } catch (e) {} }
+function saveUi(patch) { try { const cur = loadUi() || {}; localStorage.setItem(UI_KEY, JSON.stringify(Object.assign(cur, patch))); } catch (e) {} }
+function loadUi() { try { return JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { return null; } }
+
+/* ---------- generic helpers ---------- */
+function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function money(n) { const v = Number(n) || 0; return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+function moneyPlain(n) { const v = Number(n) || 0; return 'Rs. ' + v.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+function uid(p) { return p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(showToast._t); showToast._t = setTimeout(() => t.classList.remove('show'), 2400); }
+function showModal(html) { document.getElementById('modal-root').innerHTML = '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal">' + html + '</div></div>'; }
+function closeModal() { const r = document.getElementById('modal-root'); if (r) r.innerHTML = ''; }
+function emptyState(msg) { return '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg><div>' + escapeHtml(msg) + '</div></div>'; }
+function monthKey(d) { return d ? d.slice(0, 7) : ''; }
+function yearKey(d) { return d ? d.slice(0, 4) : ''; }
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
 function staffById(id) { return state.staff.find(s => s.staffId === id); }
-function allRecords() {
-  return [
-    ...state.checker.map(r => ({ ...r, type: 'Checker' })),
-    ...state.supervisor.map(r => ({ ...r, type: 'Supervisor' }))
-  ];
+function activeStaff() { return state.staff.filter(s => s.active); }
+function staffOptions(filterRole) {
+  let list = activeStaff();
+  if (filterRole) list = list.filter(s => (s.roles || []).includes(filterRole));
+  if (!list.length) return '<option value="">No staff available</option>';
+  return list.map(s => `<option value="${escapeHtml(s.staffId)}">${escapeHtml(s.staffId)} — ${escapeHtml(s.name)} (${escapeHtml(s.branch || '')})</option>`).join('');
 }
-function monthKey(dateStr) { return dateStr ? dateStr.slice(0, 7) : ''; }
-function yearKey(dateStr) { return dateStr ? dateStr.slice(0, 4) : ''; }
+function branchOptions(selected) {
+  return state.branches.map(b => `<option value="${escapeHtml(b)}" ${b === selected ? 'selected' : ''}>${escapeHtml(b)}</option>`).join('');
+}
+function roleTagPills(roles) {
+  return (roles || []).map(r => `<span class="pill neutral">${escapeHtml(r)}</span>`).join(' ') || '<span class="pill neutral">No role</span>';
+}
+function approvalBadge(status) {
+  const map = { draft: ['neutral', 'Draft'], pending: ['warning', 'Pending Approval'], approved: ['success', 'Approved'], rejected: ['danger', 'Rejected'] };
+  const pair = map[status] || ['neutral', status];
+  return `<span class="pill ${pair[0]}">${pair[1]}</span>`;
+}
+function paymentBadge(status) { return `<span class="pill ${status === 'Paid' ? 'success' : 'warning'}">${status}</span>`; }
 
-/* ---------- auth ---------- */
-function handleLogin(e) {
+/* ---------- identity & permission ---------- */
+function getIdentity() {
+  const sess = loadSession();
+  if (!sess) return null;
+  if (sess.type === 'admin') return { type: 'admin', label: 'Main Admin', branch: null };
+  const staff = state.staff.find(s => s.staffId === sess.staffId);
+  if (!staff || !staff.active) return null;
+  const roles = staff.roles || [];
+  const isCoordinator = roles.includes('Branch Coordinator');
+  const workRoles = roles.filter(r => r !== 'Branch Coordinator');
+  return { type: 'staff', staff, isCoordinator, workRoles, branch: staff.branch, label: staff.name };
+}
+function scopeBranch(identity) { return identity.type === 'admin' ? null : identity.branch; }
+
+/* ---------- publish / persist ---------- */
+async function persistAndPublish(nextState, successMsg) {
+  try {
+    const html = renderFullDocument(nextState);
+    const cap = await artifactCapPromise;
+    if (!cap) {
+      state = nextState;
+      closeModal(); render();
+      showToast(successMsg || 'Saved.');
+      return true;
+    }
+    await cap.publish(html);
+    state = nextState;
+    closeModal(); render();
+    if (successMsg) showToast(successMsg);
+    return true;
+  } catch (err) {
+    const code = err && err.code;
+    if (code === 'conflict') {
+      showToast('Someone else just saved changes — refreshing…');
+    } else if (code === 'not_writer' || code === 'not_granted') {
+      readOnly = true;
+      const banner = document.getElementById('readonly-banner');
+      if (banner) banner.style.display = 'block';
+      renderNav(); render();
+      showToast('You have read-only access here.');
+    } else {
+      showToast('Could not save. Please try again.');
+    }
+    return false;
+  }
+}
+
+const HEAD_HTML = '<meta charset="utf-8">\n<title>Staff Payment Portal</title>\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">';
+
+function renderFullDocument(newState) {
+  const json = JSON.stringify(newState).replace(/</g, '\\u003c');
+  return '<!doctype html>\n<html lang="en">\n<head>\n' + HEAD_HTML +
+    '\n<script id="app-state" type="application/json">' + json + '<' + '/script>\n' +
+    '<script id="app-script">' + APP_SCRIPT_SOURCE + '<' + '/script>\n' +
+    '</head>\n<body></body>\n</html>';
+}
+
+/* ---------- login flow ---------- */
+function setLoginMode(mode) {
+  document.getElementById('lt-admin').classList.toggle('active', mode === 'admin');
+  document.getElementById('lt-staff').classList.toggle('active', mode === 'staff');
+  document.getElementById('admin-login-form').style.display = mode === 'admin' ? 'block' : 'none';
+  document.getElementById('staff-login-form').style.display = mode === 'staff' ? 'block' : 'none';
+  if (mode === 'staff') populateStaffLoginSelect();
+}
+function populateStaffLoginSelect() {
+  const sel = document.getElementById('login-staffId');
+  const list = activeStaff();
+  sel.innerHTML = list.length ? list.map(s => `<option value="${escapeHtml(s.staffId)}">${escapeHtml(s.name)} — ${escapeHtml(s.branch || '')}</option>`).join('') : '<option value="">No staff added yet</option>';
+}
+function handleAdminLogin(e) {
   e.preventDefault();
   const pw = document.getElementById('login-password').value;
-  const err = document.getElementById('login-error');
-  if (pw === state.settings.password) {
-    state.auth = true; saveState();
+  const err = document.getElementById('admin-login-error');
+  if (pw === state.settings.adminPassword) {
     err.textContent = '';
+    saveSession({ type: 'admin' });
     document.getElementById('login-password').value = '';
     showApp();
-  } else {
-    err.textContent = 'Incorrect password. Please try again.';
-  }
+  } else { err.textContent = 'Incorrect password. Please try again.'; }
+}
+function handleStaffLogin(e) {
+  e.preventDefault();
+  const staffId = document.getElementById('login-staffId').value;
+  const pin = document.getElementById('login-pin').value;
+  const err = document.getElementById('staff-login-error');
+  const staff = staffById(staffId);
+  if (!staff || !staff.active) { err.textContent = 'Please select a valid staff member.'; return; }
+  if (String(staff.pin) !== String(pin)) { err.textContent = 'Incorrect PIN.'; return; }
+  err.textContent = '';
+  saveSession({ type: 'staff', staffId });
+  document.getElementById('login-pin').value = '';
+  showApp();
 }
 function handleLogout() {
   if (!confirm('Log out of the portal?')) return;
-  state.auth = false; saveState();
-  document.getElementById('app').style.display = 'none';
+  clearSession();
+  showLoginScreen();
+}
+function showLoginScreen() {
   document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
 }
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  switchTab('dashboard');
+  const identity = getIdentity();
+  const ui = loadUi();
+  const tabs = computeVisibleTabs(identity);
+  currentTab = (ui && tabs.includes(ui.tab)) ? ui.tab : (tabs[0] || 'dashboard');
+  document.getElementById('tab-label').textContent = TAB_META[currentTab] ? TAB_META[currentTab].label : '';
+  const banner = document.getElementById('readonly-banner');
+  if (banner) banner.style.display = readOnly ? 'block' : 'none';
+  renderNav();
+  render();
 }
 
-/* ---------- tabs ---------- */
-const TAB_LABELS = { dashboard: 'Dashboard', staff: 'Staff Management', checker: 'Paper Checker Records', supervisor: 'Supervisor Records', reports: 'Reports', settings: 'Settings' };
+/* ---------- nav ---------- */
+const TAB_META = {
+  dashboard: { label: 'Dashboard', icon: ICONS.dashboard },
+  staff: { label: 'Staff', icon: ICONS.staff },
+  records: { label: 'Records', icon: ICONS.records },
+  approvals: { label: 'Approvals', icon: ICONS.approvals },
+  reports: { label: 'Reports', icon: ICONS.reports },
+  settings: { label: 'Settings', icon: ICONS.settings }
+};
+function computeVisibleTabs(identity) {
+  if (!identity) return [];
+  if (identity.type === 'admin') return ['dashboard', 'staff', 'records', 'approvals', 'reports', 'settings'];
+  if (identity.isCoordinator) {
+    const tabs = ['dashboard', 'staff'];
+    if (identity.workRoles.length) tabs.push('records');
+    tabs.push('approvals', 'reports');
+    return tabs;
+  }
+  return ['dashboard', 'records'];
+}
+function renderNav() {
+  const identity = getIdentity();
+  const tabbar = document.getElementById('tabbar');
+  if (!identity) { tabbar.innerHTML = ''; return; }
+  const tabs = computeVisibleTabs(identity);
+  if (!tabs.includes(currentTab)) currentTab = tabs[0] || 'dashboard';
+  tabbar.innerHTML = tabs.map(t => `<button data-tab="${t}" class="${t === currentTab ? 'active' : ''}" onclick="switchTab('${t}')">${TAB_META[t].icon}${TAB_META[t].label}</button>`).join('');
+}
 function switchTab(tab) {
   currentTab = tab;
-  document.getElementById('tab-label').textContent = TAB_LABELS[tab] || '';
-  document.querySelectorAll('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  saveUi({ tab });
+  const label = TAB_META[tab] ? TAB_META[tab].label : '';
+  document.getElementById('tab-label').textContent = label;
+  renderNav();
   render();
-  document.getElementById('content').scrollTop = 0;
   window.scrollTo(0, 0);
 }
 function render() {
+  const identity = getIdentity();
+  if (!identity) { showLoginScreen(); return; }
   const c = document.getElementById('content');
-  if (currentTab === 'dashboard') c.innerHTML = renderDashboard();
-  else if (currentTab === 'staff') c.innerHTML = renderStaff();
-  else if (currentTab === 'checker') c.innerHTML = renderChecker();
-  else if (currentTab === 'supervisor') c.innerHTML = renderSupervisor();
-  else if (currentTab === 'reports') c.innerHTML = renderReports();
-  else if (currentTab === 'settings') c.innerHTML = renderSettings();
+  if (currentTab === 'dashboard') c.innerHTML = renderDashboard(identity);
+  else if (currentTab === 'staff') c.innerHTML = renderStaffTab(identity);
+  else if (currentTab === 'records') c.innerHTML = renderRecordsTab(identity);
+  else if (currentTab === 'approvals') c.innerHTML = renderApprovalsTab(identity);
+  else if (currentTab === 'reports') c.innerHTML = renderReportsTab(identity);
+  else if (currentTab === 'settings') c.innerHTML = renderSettingsTab(identity);
 }
 
 /* ---------- dashboard ---------- */
-function renderDashboard() {
-  const totalStaff = state.staff.length;
-  const activeCount = activeStaff().length;
-  const totalPapers = state.checker.reduce((s, r) => s + Number(r.numPapers || 0), 0);
-  const all = allRecords();
-  const totalPayment = all.reduce((s, r) => s + Number(r.total || 0), 0);
+function computeScopedRows(identity) {
+  const branch = scopeBranch(identity);
+  let all = [
+    ...state.checker.map(r => Object.assign({}, r, { type: 'Paper Checker', dateKey: r.dateOfPaper })),
+    ...state.supervisor.map(r => Object.assign({}, r, { type: 'Supervisor', dateKey: r.date })),
+    ...state.openday.map(r => Object.assign({}, r, { type: 'Open Day', dateKey: r.date }))
+  ];
+  if (branch) all = all.filter(r => r.branch === branch);
+  if (identity.type === 'staff' && !identity.isCoordinator) all = all.filter(r => r.staffId === identity.staff.staffId);
+  return all;
+}
+function renderDashboard(identity) {
+  const rows = computeScopedRows(identity);
+  const approved = rows.filter(r => r.approvalStatus === 'approved');
+  const branch = scopeBranch(identity);
+  const totalPapers = state.checker.filter(r => {
+    if (branch && r.branch !== branch) return false;
+    if (identity.type === 'staff' && !identity.isCoordinator && r.staffId !== identity.staff.staffId) return false;
+    return true;
+  }).reduce((s, r) => s + Number(r.numPapers || 0), 0);
+  const approvedTotal = approved.reduce((s, r) => s + Number(r.total || 0), 0);
   const nowMonth = todayStr().slice(0, 7);
-  const monthPayment = all.filter(r => monthKey(r.date) === nowMonth).reduce((s, r) => s + Number(r.total || 0), 0);
-  const pending = all.filter(r => r.status === 'Pending').reduce((s, r) => s + Number(r.total || 0), 0);
-
-  const recent = all.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 5);
+  const monthApproved = approved.filter(r => monthKey(r.dateKey) === nowMonth).reduce((s, r) => s + Number(r.total || 0), 0);
+  const pendingApprovalAmt = rows.filter(r => r.approvalStatus === 'pending').reduce((s, r) => s + Number(r.total || 0), 0);
+  const pendingPayment = approved.filter(r => r.paymentStatus === 'Pending').reduce((s, r) => s + Number(r.total || 0), 0);
+  const totalStaff = identity.type === 'admin' ? state.staff.length : state.staff.filter(s => s.branch === identity.branch).length;
+  const activeCount = identity.type === 'admin' ? activeStaff().length : state.staff.filter(s => s.branch === identity.branch && s.active).length;
+  const recent = rows.slice().sort((a, b) => (b.dateKey || '').localeCompare(a.dateKey || '')).slice(0, 6);
+  const scopeNote = identity.type === 'admin' ? 'All branches' : (identity.isCoordinator ? `${escapeHtml(identity.branch)} branch` : 'Your submissions');
+  const showStaffTiles = identity.type === 'admin' || identity.isCoordinator;
 
   return `
-    <div class="section-head"><div><h2>Dashboard</h2><p>Overview of staff and payments</p></div></div>
+    <div class="section-head"><div><h2>Dashboard</h2><p>${scopeNote}</p></div></div>
     <div class="stat-grid">
+      ${showStaffTiles ? `
       <div class="stat-tile"><div class="label">Total Staff</div><div class="value num">${totalStaff}</div><div class="helper">${activeCount} active</div></div>
-      <div class="stat-tile"><div class="label">Papers Checked</div><div class="value num">${totalPapers}</div></div>
-      <div class="stat-tile accent"><div class="label">Total Payment</div><div class="value num">${money(totalPayment)}</div></div>
-      <div class="stat-tile"><div class="label">This Month</div><div class="value num">${money(monthPayment)}</div></div>
-      <div class="stat-tile warning" style="grid-column: 1 / -1;"><div class="label">Pending Payment</div><div class="value num">${money(pending)}</div></div>
+      <div class="stat-tile"><div class="label">Papers Checked</div><div class="value num">${totalPapers}</div></div>` : ''}
+      <div class="stat-tile accent"><div class="label">Approved Payment</div><div class="value num">${money(approvedTotal)}</div></div>
+      <div class="stat-tile"><div class="label">This Month (Approved)</div><div class="value num">${money(monthApproved)}</div></div>
+      <div class="stat-tile warning"><div class="label">Pending Approval</div><div class="value num">${money(pendingApprovalAmt)}</div></div>
+      <div class="stat-tile warning"><div class="label">Pending Payment</div><div class="value num">${money(pendingPayment)}</div></div>
     </div>
     <div class="card">
       <h3>Recent Activity</h3>
-      ${recent.length ? `
-        <div class="table-wrap"><table>
-          <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody>
-            ${recent.map(r => `<tr>
-              <td class="num">${escapeHtml(r.date)}</td>
-              <td>${escapeHtml(r.staffName)}</td>
-              <td>${r.type}</td>
-              <td class="num">${money(r.total)}</td>
-              <td>${statusPill(r.status)}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table></div>
-      ` : emptyState('No records yet. Add a Paper Checker or Supervisor record to see activity here.')}
+      ${recent.length ? `<div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Amount</th><th>Approval</th><th>Payment</th></tr></thead>
+        <tbody>${recent.map(r => `<tr>
+          <td class="num">${escapeHtml(r.dateKey)}</td>
+          <td>${escapeHtml(r.staffName)}</td>
+          <td>${r.type}</td>
+          <td class="num">${money(r.total)}</td>
+          <td>${approvalBadge(r.approvalStatus)}</td>
+          <td>${r.approvalStatus === 'approved' ? paymentBadge(r.paymentStatus) : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>` : emptyState('No records yet.')}
     </div>
   `;
 }
-function statusPill(status) {
-  const cls = status === 'Paid' ? 'success' : 'warning';
-  return `<span class="pill ${cls}">${status}</span>`;
-}
 
-/* ---------- staff ---------- */
-function renderStaff() {
-  const rows = state.staff;
+/* ---------- staff management ---------- */
+function renderStaffTab(identity) {
+  if (identity.type === 'staff' && !identity.isCoordinator) return emptyState('Not available.');
+  const isAdmin = identity.type === 'admin';
+  const rows = isAdmin ? state.staff : state.staff.filter(s => s.branch === identity.branch);
   return `
     <div class="section-head">
-      <div><h2>Staff Management</h2><p>${rows.length} staff member${rows.length === 1 ? '' : 's'}</p></div>
-      <button class="btn btn-primary btn-sm" onclick="openStaffModal()">+ Add Staff</button>
+      <div><h2>${isAdmin ? 'Staff Management' : 'Branch Staff'}</h2><p>${rows.length} staff member${rows.length === 1 ? '' : 's'}${isAdmin ? '' : ` in ${escapeHtml(identity.branch)}`}</p></div>
+      ${isAdmin ? `<button class="btn btn-primary btn-sm" onclick="openStaffModal()">+ Add Staff</button>` : ''}
     </div>
-    ${rows.length ? `
-      <div class="table-wrap"><table>
-        <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          ${rows.map(s => `<tr>
-            <td class="num">${escapeHtml(s.staffId)}</td>
-            <td>${escapeHtml(s.name)}</td>
-            <td>${escapeHtml(s.role)}</td>
-            <td><button class="pill pill-btn ${s.active ? 'success' : 'danger'}" onclick="toggleStaffActive('${s.staffId}')">${s.active ? 'Active' : 'Inactive'}</button></td>
-            <td class="row-actions">
-              <button class="btn btn-ghost btn-sm" onclick="openStaffModal('${s.staffId}')">Edit</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.staffId}')">Delete</button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table></div>
-    ` : emptyState('No staff added yet. Tap "Add Staff" to get started.')}
+    ${rows.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>Staff ID</th><th>Name</th><th>Roles</th><th>Branch</th><th>Contact</th><th>Status</th>${isAdmin ? '<th></th>' : ''}</tr></thead>
+      <tbody>${rows.map(s => `<tr>
+        <td class="num">${escapeHtml(s.staffId)}</td>
+        <td>${escapeHtml(s.name)}</td>
+        <td>${roleTagPills(s.roles)}</td>
+        <td>${escapeHtml(s.branch)}</td>
+        <td>${escapeHtml(s.contact)}</td>
+        <td>${isAdmin ? `<button class="pill pill-btn ${s.active ? 'success' : 'danger'}" onclick="toggleStaffActive('${s.staffId}')">${s.active ? 'Active' : 'Inactive'}</button>` : `<span class="pill ${s.active ? 'success' : 'danger'}">${s.active ? 'Active' : 'Inactive'}</span>`}</td>
+        ${isAdmin ? `<td class="row-actions"><button class="btn btn-ghost btn-sm" onclick="openStaffModal('${s.staffId}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.staffId}')">Delete</button></td>` : ''}
+      </tr>`).join('')}</tbody>
+    </table></div>` : emptyState('No staff added yet.')}
   `;
 }
 function openStaffModal(staffId) {
@@ -514,18 +584,26 @@ function openStaffModal(staffId) {
   showModal(`
     <h3>${editing ? 'Edit Staff' : 'Add Staff'}</h3>
     <form onsubmit="submitStaff(event, ${editing ? `'${staffId}'` : 'null'})">
-      <div class="field"><label>Staff ID</label><input type="text" id="f-staffId" value="${editing ? escapeHtml(editing.staffId) : ''}" ${editing ? 'readonly' : ''} required placeholder="e.g. S003"></div>
-      <div class="field"><label>Staff Name</label><input type="text" id="f-name" value="${editing ? escapeHtml(editing.name) : ''}" required placeholder="Full name"></div>
-      <div class="field"><label>Role</label>
-        <select id="f-role">
-          ${['Paper Checker', 'Supervisor', 'Both', 'Other'].map(r => `<option ${editing && editing.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-        </select>
+      <div class="form-row">
+        <div class="field"><label>Staff ID</label><input type="text" id="f-staffId" value="${editing ? escapeHtml(editing.staffId) : ''}" ${editing ? 'readonly' : ''} required placeholder="e.g. S005"></div>
+        <div class="field"><label>Staff Name</label><input type="text" id="f-name" value="${editing ? escapeHtml(editing.name) : ''}" required></div>
       </div>
-      <div class="field"><label>Status</label>
-        <select id="f-active">
-          <option value="true" ${!editing || editing.active ? 'selected' : ''}>Active</option>
-          <option value="false" ${editing && !editing.active ? 'selected' : ''}>Inactive</option>
-        </select>
+      <div class="field"><label>Role(s)</label>
+        <div class="checkbox-group">
+          ${ROLE_TAGS.map(r => `<label><input type="checkbox" value="${r}" ${editing && (editing.roles || []).includes(r) ? 'checked' : ''}> ${r}</label>`).join('')}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Branch</label><select id="f-branch">${branchOptions(editing ? editing.branch : state.branches[0])}</select></div>
+        <div class="field"><label>Session</label><input type="text" id="f-session" value="${editing ? escapeHtml(editing.session) : ''}" placeholder="e.g. 2026"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Contact Number</label><input type="tel" id="f-contact" value="${editing ? escapeHtml(editing.contact) : ''}" pattern="[0-9]{7,15}" required></div>
+        <div class="field"><label>Email (optional)</label><input type="email" id="f-email" value="${editing ? escapeHtml(editing.email) : ''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Login PIN (4-6 digits)</label><input type="text" inputmode="numeric" pattern="[0-9]{4,6}" id="f-pin" value="${editing ? escapeHtml(editing.pin) : ''}" required></div>
+        <div class="field"><label>Status</label><select id="f-active"><option value="true" ${!editing || editing.active ? 'selected' : ''}>Active</option><option value="false" ${editing && !editing.active ? 'selected' : ''}>Inactive</option></select></div>
       </div>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -538,93 +616,218 @@ function submitStaff(e, editingId) {
   e.preventDefault();
   const staffId = document.getElementById('f-staffId').value.trim();
   const name = document.getElementById('f-name').value.trim();
-  const role = document.getElementById('f-role').value;
+  const roles = Array.from(document.querySelectorAll('.checkbox-group input:checked')).map(c => c.value);
+  const branch = document.getElementById('f-branch').value;
+  const session = document.getElementById('f-session').value.trim();
+  const contact = document.getElementById('f-contact').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const pin = document.getElementById('f-pin').value.trim();
   const active = document.getElementById('f-active').value === 'true';
-  if (!staffId || !name) return;
-  if (!editingId && state.staff.some(s => s.staffId.toLowerCase() === staffId.toLowerCase())) {
-    showToast('That Staff ID already exists.'); return;
-  }
+  if (!staffId || !name || !contact || !pin) return;
+  if (!editingId && state.staff.some(s => s.staffId.toLowerCase() === staffId.toLowerCase())) { showToast('That Staff ID already exists.'); return; }
+  const next = deepClone(state);
   if (editingId) {
-    const s = staffById(editingId);
-    s.name = name; s.role = role; s.active = active;
-    syncStaffNameInRecords(editingId, name);
-    showToast('Staff updated.');
+    const s = next.staff.find(x => x.staffId === editingId);
+    Object.assign(s, { name, roles, branch, session, contact, email, pin, active });
+    [next.checker, next.supervisor, next.openday].forEach(list => list.forEach(r => { if (r.staffId === editingId) r.staffName = name; }));
   } else {
-    state.staff.push({ staffId, name, role, active });
-    showToast('Staff added.');
+    next.staff.push({ staffId, name, roles, branch, session, contact, email, pin, active });
   }
-  saveState(); closeModal(); render();
-}
-function syncStaffNameInRecords(staffId, name) {
-  state.checker.forEach(r => { if (r.staffId === staffId) r.staffName = name; });
-  state.supervisor.forEach(r => { if (r.staffId === staffId) r.staffName = name; });
+  persistAndPublish(next, editingId ? 'Staff updated.' : 'Staff added.');
 }
 function toggleStaffActive(staffId) {
-  const s = staffById(staffId); s.active = !s.active; saveState(); render();
+  const next = deepClone(state);
+  next.staff.find(x => x.staffId === staffId).active = !staffById(staffId).active;
+  persistAndPublish(next, 'Status updated.');
 }
 function deleteStaff(staffId) {
-  const used = state.checker.some(r => r.staffId === staffId) || state.supervisor.some(r => r.staffId === staffId);
-  const msg = used
-    ? 'This staff member has payment records. Delete anyway? Their existing records will be kept but no longer linked to an active staff profile.'
-    : 'Delete this staff member?';
+  const used = state.checker.some(r => r.staffId === staffId) || state.supervisor.some(r => r.staffId === staffId) || state.openday.some(r => r.staffId === staffId);
+  const msg = used ? 'This staff member has records. Delete anyway? Their records will be kept.' : 'Delete this staff member?';
   if (!confirm(msg)) return;
-  state.staff = state.staff.filter(s => s.staffId !== staffId);
-  saveState(); render();
+  const next = deepClone(state);
+  next.staff = next.staff.filter(s => s.staffId !== staffId);
+  persistAndPublish(next, 'Staff deleted.');
 }
 
-/* ---------- record modal builder (shared shape for checker/supervisor) ---------- */
-function staffOptions(selectedId) {
-  if (!state.staff.length) return '<option value="">No staff added yet</option>';
-  return state.staff.map(s => `<option value="${escapeHtml(s.staffId)}" ${s.staffId === selectedId ? 'selected' : ''}>${escapeHtml(s.staffId)} — ${escapeHtml(s.name)}${s.active ? '' : ' (Inactive)'}</option>`).join('');
+/* ---------- records: shared helpers ---------- */
+function recordTypeMeta(kind) {
+  if (kind === 'checker') return { list: state.checker, dateField: 'dateOfPaper' };
+  if (kind === 'supervisor') return { list: state.supervisor, dateField: 'date' };
+  return { list: state.openday, dateField: 'date' };
+}
+function getListKey(kind) { return kind; }
+function findRecord(kind, id) { return state[getListKey(kind)].find(r => r.id === id); }
+function scopedList(identity, kind) {
+  const meta = recordTypeMeta(kind);
+  let rows = meta.list.slice();
+  const branch = scopeBranch(identity);
+  if (branch) rows = rows.filter(r => r.branch === branch);
+  if (identity.type === 'staff' && !identity.isCoordinator) rows = rows.filter(r => r.staffId === identity.staff.staffId);
+  if (identity.type === 'admin' && adminRecordsBranchFilter) rows = rows.filter(r => r.branch === adminRecordsBranchFilter);
+  return rows;
+}
+function availableRecordKinds(identity) {
+  if (identity.type === 'admin') return ['checker', 'supervisor', 'openday'];
+  const kinds = [];
+  if (identity.workRoles.includes('Paper Checker')) kinds.push('checker');
+  if (identity.workRoles.includes('Supervisor')) kinds.push('supervisor');
+  if (identity.workRoles.includes('Open Day Examiner')) kinds.push('openday');
+  if (identity.isCoordinator && !kinds.length) return ['checker', 'supervisor', 'openday'];
+  return kinds;
+}
+function canFillFor(identity, roleTag) { return identity.type === 'admin' || (identity.type === 'staff' && identity.workRoles.includes(roleTag)); }
+function canEditDraftOrReject(identity, record) {
+  if (identity.type === 'admin') return true;
+  return identity.type === 'staff' && record.staffId === identity.staff.staffId && (record.approvalStatus === 'draft' || record.approvalStatus === 'rejected');
+}
+function canReviewRecord(identity, record) {
+  if (identity.type === 'admin') return true;
+  return !!identity.isCoordinator && identity.branch === record.branch && record.staffId !== identity.staff.staffId;
+}
+function canTogglePayment(identity, record) {
+  if (record.approvalStatus !== 'approved') return false;
+  return identity.type === 'admin' || (identity.isCoordinator && identity.branch === record.branch);
+}
+function kindCap(kind) { return kind === 'checker' ? 'Checker' : kind === 'supervisor' ? 'Supervisor' : 'OpenDay'; }
+function recordRowActions(identity, kind, r) {
+  const parts = [];
+  if (canEditDraftOrReject(identity, r)) {
+    parts.push(`<button class="btn btn-ghost btn-sm" onclick="open${kindCap(kind)}Modal('${r.id}')">Edit</button>`);
+    if (r.approvalStatus === 'draft') parts.push(`<button class="btn btn-primary btn-sm" onclick="submitForApproval('${kind}','${r.id}')">Submit</button>`);
+    parts.push(`<button class="btn btn-danger btn-sm" onclick="deleteRecord('${kind}','${r.id}')">Delete</button>`);
+  }
+  if (canReviewRecord(identity, r) && r.approvalStatus === 'pending') {
+    parts.push(`<button class="btn btn-primary btn-sm" onclick="approveRecord('${kind}','${r.id}')">Approve</button>`);
+    parts.push(`<button class="btn btn-danger btn-sm" onclick="openRejectModal('${kind}','${r.id}')">Reject</button>`);
+  }
+  if (identity.type === 'admin' && (r.approvalStatus === 'approved' || r.approvalStatus === 'rejected' || r.approvalStatus === 'pending')) {
+    parts.push(`<button class="btn btn-ghost btn-sm" onclick="reopenRecord('${kind}','${r.id}')">Reopen</button>`);
+  } else if (canReviewRecord(identity, r) && (r.approvalStatus === 'approved' || r.approvalStatus === 'rejected')) {
+    parts.push(`<button class="btn btn-ghost btn-sm" onclick="reopenRecord('${kind}','${r.id}')">Reopen</button>`);
+  }
+  return parts.join('');
 }
 
-/* ---------- checker ---------- */
-function renderChecker() {
-  const rows = [...state.checker].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+function renderRecordsTab(identity) {
+  const kinds = availableRecordKinds(identity);
+  if (!kinds.length) return emptyState('You do not have a work role assigned yet. Ask the Main Admin to update your staff profile.');
+  if (!kinds.includes(recordsSubTab)) recordsSubTab = kinds[0];
+  const labelMap = { checker: 'Paper Checker', supervisor: 'Supervisor', openday: 'Open Day' };
+  let html = '';
+  if (kinds.length > 1) html += `<div class="segmented">${kinds.map(k => `<button class="${recordsSubTab === k ? 'active' : ''}" onclick="setRecordsSubTab('${k}')">${labelMap[k]}</button>`).join('')}</div>`;
+  if (identity.type === 'admin') html += `<div class="filter-bar"><select onchange="adminRecordsBranchFilter=this.value; render();"><option value="">All Branches</option>${state.branches.map(b => `<option value="${escapeHtml(b)}" ${adminRecordsBranchFilter === b ? 'selected' : ''}>${escapeHtml(b)}</option>`).join('')}</select></div>`;
+  if (recordsSubTab === 'checker') html += renderCheckerSection(identity);
+  else if (recordsSubTab === 'supervisor') html += renderSupervisorSection(identity);
+  else html += renderOpenDaySection(identity);
+  return html;
+}
+function setRecordsSubTab(k) { recordsSubTab = k; render(); }
+
+/* ---------- approval actions (shared across record types) ---------- */
+function submitForApproval(kind, id) {
+  const next = deepClone(state);
+  const r = next[kind].find(x => x.id === id);
+  r.approvalStatus = 'pending'; r.submittedAt = todayStr();
+  persistAndPublish(next, 'Submitted for approval.');
+}
+function approveRecord(kind, id) {
+  if (!confirm('Approve this record? It will count toward the approved payment total.')) return;
+  const next = deepClone(state);
+  const r = next[kind].find(x => x.id === id);
+  r.approvalStatus = 'approved'; r.rejectReason = '';
+  persistAndPublish(next, 'Record approved.');
+}
+function openRejectModal(kind, id) {
+  showModal(`
+    <h3>Reject Record</h3>
+    <form onsubmit="submitReject(event, '${kind}', '${id}')">
+      <div class="field"><label>Reason for rejection</label><textarea id="reject-reason" rows="3" required></textarea></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-danger">Reject Record</button>
+      </div>
+    </form>
+  `);
+}
+function submitReject(e, kind, id) {
+  e.preventDefault();
+  const reason = document.getElementById('reject-reason').value.trim();
+  if (!reason) return;
+  const next = deepClone(state);
+  const r = next[kind].find(x => x.id === id);
+  r.approvalStatus = 'rejected'; r.rejectReason = reason;
+  persistAndPublish(next, 'Record rejected.');
+}
+function reopenRecord(kind, id) {
+  if (!confirm('Reopen this record for editing? It will go back to Draft status.')) return;
+  const next = deepClone(state);
+  const r = next[kind].find(x => x.id === id);
+  r.approvalStatus = 'draft';
+  persistAndPublish(next, 'Record reopened for editing.');
+}
+function togglePaymentStatus(kind, id) {
+  const next = deepClone(state);
+  const r = next[kind].find(x => x.id === id);
+  r.paymentStatus = r.paymentStatus === 'Paid' ? 'Pending' : 'Paid';
+  persistAndPublish(next, 'Payment status updated.');
+}
+function deleteRecord(kind, id) {
+  if (!confirm('Delete this record?')) return;
+  const next = deepClone(state);
+  next[kind] = next[kind].filter(r => r.id !== id);
+  persistAndPublish(next, 'Record deleted.');
+}
+
+/* ---------- Paper Checker ---------- */
+function renderCheckerSection(identity) {
+  const rows = scopedList(identity, 'checker').slice().sort((a, b) => (b.dateOfPaper || '').localeCompare(a.dateOfPaper || ''));
+  const canAdd = canFillFor(identity, 'Paper Checker');
   return `
     <div class="section-head">
       <div><h2>Paper Checker Records</h2><p>${rows.length} record${rows.length === 1 ? '' : 's'}</p></div>
-      <button class="btn btn-primary btn-sm" onclick="openCheckerModal()" ${state.staff.length ? '' : 'disabled title="Add staff first"'}>+ Add Record</button>
+      ${canAdd ? `<button class="btn btn-primary btn-sm" onclick="openCheckerModal()">+ Add Record</button>` : ''}
     </div>
-    ${rows.length ? `
-      <div class="table-wrap"><table>
-        <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Papers</th><th>Rate</th><th>Answer Key</th><th>Total</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          ${rows.map(r => `<tr>
-            <td class="num">${escapeHtml(r.date)}</td>
-            <td>${escapeHtml(r.staffName)}</td>
-            <td>${escapeHtml(r.branch)}</td>
-            <td>${escapeHtml(r.exam)}</td>
-            <td>${escapeHtml(r.subject)}</td>
-            <td class="num">${escapeHtml(r.marks)}</td>
-            <td class="num">${escapeHtml(r.numPapers)}</td>
-            <td class="num">${money(r.rate)}</td>
-            <td class="num">${money(r.answerKeyCharge)}</td>
-            <td class="num">${money(r.total)}</td>
-            <td><button class="pill pill-btn ${r.status === 'Paid' ? 'success' : 'warning'}" onclick="toggleStatus('checker','${r.id}')">${r.status}</button></td>
-            <td class="row-actions">
-              <button class="btn btn-ghost btn-sm" onclick="openCheckerModal('${r.id}')">Edit</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteRecord('checker','${r.id}')">Delete</button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table></div>
-    ` : emptyState('No paper checking records yet.')}
+    ${rows.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>Date of Paper</th><th>Staff</th><th>Branch</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Papers</th><th>Rate</th><th>Answer Key</th><th>Total</th><th>Issued By</th><th>Collected By</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td class="num">${escapeHtml(r.dateOfPaper)}</td>
+        <td>${escapeHtml(r.staffName)}</td>
+        <td>${escapeHtml(r.branch)}</td>
+        <td>${escapeHtml(r.exam)}</td>
+        <td>${escapeHtml(r.subject)}</td>
+        <td class="num">${escapeHtml(r.marks)}</td>
+        <td class="num">${escapeHtml(r.numPapers)}</td>
+        <td class="num">${money(r.rate)}</td>
+        <td class="num">${money(r.answerKeyCharge)}</td>
+        <td class="num">${money(r.total)}</td>
+        <td>${escapeHtml(r.issuedByName)}</td>
+        <td>${escapeHtml(r.collectedByName)}</td>
+        <td>${approvalBadge(r.approvalStatus)}</td>
+        <td>${r.approvalStatus === 'approved' ? (canTogglePayment(identity, r) ? `<button class="pill pill-btn ${r.paymentStatus === 'Paid' ? 'success' : 'warning'}" onclick="togglePaymentStatus('checker','${r.id}')">${r.paymentStatus}</button>` : paymentBadge(r.paymentStatus)) : '—'}</td>
+        <td class="row-actions">${recordRowActions(identity, 'checker', r)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : emptyState('No paper checking records yet.')}
+    ${rows.length ? `<div class="export-row"><button class="btn btn-ghost" onclick="downloadCheckerCsv()">⬇ Download Excel</button><button class="btn btn-ghost" onclick="downloadCheckerPdf()">⬇ Download PDF</button></div>` : ''}
   `;
 }
 function openCheckerModal(id) {
-  const editing = id ? state.checker.find(r => r.id === id) : null;
+  const editing = id ? findRecord('checker', id) : null;
+  const identity = getIdentity();
+  const isSelf = identity.type === 'staff';
   const defaultRate = state.settings.checkerRate;
+  const staffFieldHtml = isSelf
+    ? `<input type="hidden" id="ck-staff" value="${escapeHtml(identity.staff.staffId)}"><div class="field"><label>Staff</label><input type="text" value="${escapeHtml(identity.staff.name)}" disabled></div>`
+    : `<div class="field"><label>Staff</label><select id="ck-staff" required>${staffOptions('Paper Checker')}</select></div>`;
   showModal(`
     <h3>${editing ? 'Edit Paper Checker Record' : 'Add Paper Checker Record'}</h3>
     <form onsubmit="submitChecker(event, ${editing ? `'${id}'` : 'null'})">
       <div class="form-row">
-        <div class="field"><label>Date</label><input type="date" id="ck-date" value="${editing ? editing.date : todayStr()}" required></div>
-        <div class="field"><label>Staff</label><select id="ck-staff" required onchange="recalcCheckerTotal()">${staffOptions(editing ? editing.staffId : '')}</select></div>
+        <div class="field"><label>Date of Paper</label><input type="date" id="ck-date" value="${editing ? editing.dateOfPaper : todayStr()}" required></div>
+        ${staffFieldHtml}
       </div>
-      <div class="field"><label>Test / Exam Name</label><input type="text" id="ck-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required placeholder="e.g. Test Series - Mock 4"></div>
-      <div class="field"><label>Branch</label><input type="text" id="ck-branch" value="${editing ? escapeHtml(editing.branch) : ''}" placeholder="e.g. Main Branch"></div>
-      <div class="field"><label>Subject</label><input type="text" id="ck-subject" value="${editing ? escapeHtml(editing.subject) : ''}" required placeholder="e.g. Physics"></div>
+      <div class="field"><label>Branch</label><select id="ck-branch">${branchOptions(editing ? editing.branch : (isSelf ? identity.staff.branch : state.branches[0]))}</select></div>
+      <div class="field"><label>Test / Exam Name</label><input type="text" id="ck-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required></div>
+      <div class="field"><label>Subject</label><input type="text" id="ck-subject" value="${editing ? escapeHtml(editing.subject) : ''}" required></div>
       <div class="form-row">
         <div class="field"><label>Paper Marks (out of)</label><input type="number" id="ck-marks" value="${editing ? editing.marks : ''}" min="0" required></div>
         <div class="field"><label>No. of Papers Checked</label><input type="number" id="ck-numPapers" value="${editing ? editing.numPapers : ''}" min="0" required oninput="recalcCheckerTotal()"></div>
@@ -633,21 +836,30 @@ function openCheckerModal(id) {
         <div class="field"><label>Rate per Paper</label><input type="number" id="ck-rate" value="${editing ? editing.rate : defaultRate}" min="0" step="0.01" required oninput="recalcCheckerTotal()"></div>
         <div class="field"><label>Answer Key Charge (extra)</label><input type="number" id="ck-answerKeyCharge" value="${editing ? editing.answerKeyCharge : 0}" min="0" step="0.01" oninput="recalcCheckerTotal()"></div>
       </div>
-      <p class="helper" style="margin:-6px 0 4px;">Answer Key Charge is a one-time extra amount added on top of papers × rate.</p>
-      <div class="total-preview"><span class="label">Total Payment</span><span class="value num" id="ck-total-preview">${money(editing ? editing.total : (defaultRate || 0))}</span></div>
-      <div class="field" style="margin-top:14px;"><label>Payment Status</label>
-        <select id="ck-status">
-          <option ${!editing || editing.status === 'Pending' ? 'selected' : ''}>Pending</option>
-          <option ${editing && editing.status === 'Paid' ? 'selected' : ''}>Paid</option>
-        </select>
+      <div class="total-preview"><span class="label">Total Payment</span><span class="value num" id="ck-total-preview">${money(editing ? editing.total : defaultRate)}</span></div>
+      <div class="form-row" style="margin-top:14px;">
+        <div class="field"><label>Paper Issued By (VSA Staff)</label><select id="ck-issuedBy">${staffOptions()}</select></div>
+        <div class="field"><label>Paper Collected By (VSA Staff)</label><select id="ck-collectedBy">${staffOptions()}</select></div>
       </div>
+      ${identity.type === 'admin' ? `<div class="field" style="margin-top:14px;"><label>Approval Status</label><select id="ck-approval">
+        <option value="draft" ${(!editing || editing.approvalStatus === 'draft') ? 'selected' : ''}>Draft</option>
+        <option value="pending" ${editing && editing.approvalStatus === 'pending' ? 'selected' : ''}>Pending Approval</option>
+        <option value="approved" ${editing && editing.approvalStatus === 'approved' ? 'selected' : ''}>Approved</option>
+        <option value="rejected" ${editing && editing.approvalStatus === 'rejected' ? 'selected' : ''}>Rejected</option>
+      </select></div>` : ''}
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-        <button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Record'}</button>
+        ${identity.type === 'staff' ? `<button type="submit" class="btn btn-ghost" onclick="window.__ckSaveMode='draft'">Save as Draft</button><button type="submit" class="btn btn-primary" onclick="window.__ckSaveMode='pending'">Submit</button>` : `<button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Record'}</button>`}
       </div>
     </form>
   `);
   recalcCheckerTotal();
+  if (editing) {
+    document.getElementById('ck-branch').value = editing.branch;
+    document.getElementById('ck-issuedBy').value = editing.issuedBy;
+    document.getElementById('ck-collectedBy').value = editing.collectedBy;
+    if (!isSelf) document.getElementById('ck-staff').value = editing.staffId;
+  }
 }
 function recalcCheckerTotal() {
   const n = Number(document.getElementById('ck-numPapers')?.value || 0);
@@ -658,155 +870,315 @@ function recalcCheckerTotal() {
 }
 function submitChecker(e, editingId) {
   e.preventDefault();
+  const identity = getIdentity();
   const staffId = document.getElementById('ck-staff').value;
   const staff = staffById(staffId);
-  if (!staff) { showToast('Please add a staff member first.'); return; }
+  if (!staff) { showToast('Please select a valid staff member.'); return; }
   const numPapers = Number(document.getElementById('ck-numPapers').value) || 0;
   const rate = Number(document.getElementById('ck-rate').value) || 0;
   const answerKeyCharge = Number(document.getElementById('ck-answerKeyCharge').value) || 0;
+  const issuedBy = document.getElementById('ck-issuedBy').value;
+  const collectedBy = document.getElementById('ck-collectedBy').value;
+  const issuedStaff = staffById(issuedBy);
+  const collectedStaff = staffById(collectedBy);
+  const approvalStatus = identity.type === 'admin' ? document.getElementById('ck-approval').value : (window.__ckSaveMode || 'draft');
+  const prevSubmittedAt = editingId ? findRecord('checker', editingId).submittedAt : '';
   const rec = {
-    date: document.getElementById('ck-date').value,
+    dateOfPaper: document.getElementById('ck-date').value,
+    branch: document.getElementById('ck-branch').value,
     staffId, staffName: staff.name,
     exam: document.getElementById('ck-exam').value.trim(),
-    branch: document.getElementById('ck-branch').value.trim(),
     subject: document.getElementById('ck-subject').value.trim(),
     marks: Number(document.getElementById('ck-marks').value) || 0,
     numPapers, rate, answerKeyCharge, total: numPapers * rate + answerKeyCharge,
-    status: document.getElementById('ck-status').value
+    issuedBy, issuedByName: issuedStaff ? issuedStaff.name : '',
+    collectedBy, collectedByName: collectedStaff ? collectedStaff.name : '',
+    approvalStatus, submittedAt: approvalStatus === 'pending' ? todayStr() : prevSubmittedAt
   };
+  const next = deepClone(state);
   if (editingId) {
-    Object.assign(state.checker.find(r => r.id === editingId), rec);
-    showToast('Record updated.');
+    const existing = next.checker.find(r => r.id === editingId);
+    rec.paymentStatus = existing.paymentStatus;
+    rec.rejectReason = approvalStatus === 'rejected' ? existing.rejectReason : '';
+    Object.assign(existing, rec);
   } else {
-    state.checker.push({ id: uid('c'), ...rec });
-    showToast('Record added.');
+    next.checker.push(Object.assign({ id: uid('c'), paymentStatus: 'Pending', rejectReason: '' }, rec));
   }
-  saveState(); closeModal(); render();
+  window.__ckSaveMode = null;
+  persistAndPublish(next, approvalStatus === 'pending' ? 'Submitted for approval.' : 'Saved.');
 }
 
-/* ---------- supervisor ---------- */
-function renderSupervisor() {
-  const rows = [...state.supervisor].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+/* ---------- Supervisor ---------- */
+function renderSupervisorSection(identity) {
+  const rows = scopedList(identity, 'supervisor').slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const canAdd = canFillFor(identity, 'Supervisor');
   return `
     <div class="section-head">
       <div><h2>Supervisor Records</h2><p>${rows.length} record${rows.length === 1 ? '' : 's'}</p></div>
-      <button class="btn btn-primary btn-sm" onclick="openSupervisorModal()" ${state.staff.length ? '' : 'disabled title="Add staff first"'}>+ Add Record</button>
+      ${canAdd ? `<button class="btn btn-primary btn-sm" onclick="openSupervisorModal()">+ Add Record</button>` : ''}
     </div>
-    ${rows.length ? `
-      <div class="table-wrap"><table>
-        <thead><tr><th>Date</th><th>Staff</th><th>Exam</th><th>Details</th><th>Qty</th><th>Rate</th><th>Total</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          ${rows.map(r => `<tr>
-            <td class="num">${escapeHtml(r.date)}</td>
-            <td>${escapeHtml(r.staffName)}</td>
-            <td>${escapeHtml(r.exam)}</td>
-            <td>${escapeHtml(r.detail)}</td>
-            <td class="num">${escapeHtml(r.qty)}</td>
-            <td class="num">${money(r.rate)}</td>
-            <td class="num">${money(r.total)}</td>
-            <td><button class="pill pill-btn ${r.status === 'Paid' ? 'success' : 'warning'}" onclick="toggleStatus('supervisor','${r.id}')">${r.status}</button></td>
-            <td class="row-actions">
-              <button class="btn btn-ghost btn-sm" onclick="openSupervisorModal('${r.id}')">Edit</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteRecord('supervisor','${r.id}')">Delete</button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table></div>
-    ` : emptyState('No supervisor records yet.')}
+    ${rows.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Session</th><th>Exam</th><th>Details</th><th>Hours</th><th>Rate</th><th>Total</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td class="num">${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.staffName)}</td>
+        <td>${escapeHtml(r.branch)}</td>
+        <td>${escapeHtml(r.session)}</td>
+        <td>${escapeHtml(r.exam)}</td>
+        <td>${escapeHtml(r.detail)}</td>
+        <td class="num">${escapeHtml(r.workingHours)}</td>
+        <td class="num">${money(r.rate)}</td>
+        <td class="num">${money(r.total)}</td>
+        <td>${approvalBadge(r.approvalStatus)}</td>
+        <td>${r.approvalStatus === 'approved' ? (canTogglePayment(identity, r) ? `<button class="pill pill-btn ${r.paymentStatus === 'Paid' ? 'success' : 'warning'}" onclick="togglePaymentStatus('supervisor','${r.id}')">${r.paymentStatus}</button>` : paymentBadge(r.paymentStatus)) : '—'}</td>
+        <td class="row-actions">${recordRowActions(identity, 'supervisor', r)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : emptyState('No supervisor records yet.')}
+    ${rows.length ? `<div class="export-row"><button class="btn btn-ghost" onclick="downloadSupervisorCsv()">⬇ Download Excel</button><button class="btn btn-ghost" onclick="downloadSupervisorPdf()">⬇ Download PDF</button></div>` : ''}
   `;
 }
 function openSupervisorModal(id) {
-  const editing = id ? state.supervisor.find(r => r.id === id) : null;
+  const editing = id ? findRecord('supervisor', id) : null;
+  const identity = getIdentity();
+  const isSelf = identity.type === 'staff';
   const defaultRate = state.settings.supervisorRate;
+  const staffFieldHtml = isSelf
+    ? `<input type="hidden" id="sv-staff" value="${escapeHtml(identity.staff.staffId)}"><div class="field"><label>Staff</label><input type="text" value="${escapeHtml(identity.staff.name)}" disabled></div>`
+    : `<div class="field"><label>Staff</label><select id="sv-staff" required>${staffOptions('Supervisor')}</select></div>`;
   showModal(`
     <h3>${editing ? 'Edit Supervisor Record' : 'Add Supervisor Record'}</h3>
     <form onsubmit="submitSupervisor(event, ${editing ? `'${id}'` : 'null'})">
       <div class="form-row">
         <div class="field"><label>Date</label><input type="date" id="sv-date" value="${editing ? editing.date : todayStr()}" required></div>
-        <div class="field"><label>Staff</label><select id="sv-staff" required>${staffOptions(editing ? editing.staffId : '')}</select></div>
+        ${staffFieldHtml}
       </div>
-      <div class="field"><label>Test / Exam Name</label><input type="text" id="sv-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required placeholder="e.g. Test Series - Mock 4"></div>
+      <div class="form-row">
+        <div class="field"><label>Branch</label><select id="sv-branch">${branchOptions(editing ? editing.branch : (isSelf ? identity.staff.branch : state.branches[0]))}</select></div>
+        <div class="field"><label>Session</label><input type="text" id="sv-session" value="${editing ? escapeHtml(editing.session) : (isSelf ? escapeHtml(identity.staff.session) : '')}" placeholder="e.g. 2026"></div>
+      </div>
+      <div class="field"><label>Test / Exam Name</label><input type="text" id="sv-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required></div>
       <div class="field"><label>Supervision Details</label><input type="text" id="sv-detail" value="${editing ? escapeHtml(editing.detail) : ''}" placeholder="e.g. Hall A, morning session"></div>
       <div class="form-row">
-        <div class="field"><label>Quantity (sessions / hours)</label><input type="number" id="sv-qty" value="${editing ? editing.qty : 1}" min="0" step="0.5" required oninput="recalcSupervisorTotal()"></div>
-        <div class="field"><label>Rate</label><input type="number" id="sv-rate" value="${editing ? editing.rate : defaultRate}" min="0" step="0.01" required oninput="recalcSupervisorTotal()"></div>
+        <div class="field"><label>Working Hours</label><input type="number" id="sv-hours" value="${editing ? editing.workingHours : 1}" min="0" step="0.5" required oninput="recalcSupervisorTotal()"></div>
+        <div class="field"><label>Rate per Hour</label><input type="number" id="sv-rate" value="${editing ? editing.rate : defaultRate}" min="0" step="0.01" required oninput="recalcSupervisorTotal()"></div>
       </div>
       <div class="total-preview"><span class="label">Total Payment</span><span class="value num" id="sv-total-preview">${money(editing ? editing.total : defaultRate)}</span></div>
-      <div class="field" style="margin-top:14px;"><label>Payment Status</label>
-        <select id="sv-status">
-          <option ${!editing || editing.status === 'Pending' ? 'selected' : ''}>Pending</option>
-          <option ${editing && editing.status === 'Paid' ? 'selected' : ''}>Paid</option>
-        </select>
-      </div>
+      ${identity.type === 'admin' ? `<div class="field" style="margin-top:14px;"><label>Approval Status</label><select id="sv-approval">
+        <option value="draft" ${(!editing || editing.approvalStatus === 'draft') ? 'selected' : ''}>Draft</option>
+        <option value="pending" ${editing && editing.approvalStatus === 'pending' ? 'selected' : ''}>Pending Approval</option>
+        <option value="approved" ${editing && editing.approvalStatus === 'approved' ? 'selected' : ''}>Approved</option>
+        <option value="rejected" ${editing && editing.approvalStatus === 'rejected' ? 'selected' : ''}>Rejected</option>
+      </select></div>` : ''}
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-        <button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Record'}</button>
+        ${identity.type === 'staff' ? `<button type="submit" class="btn btn-ghost" onclick="window.__svSaveMode='draft'">Save as Draft</button><button type="submit" class="btn btn-primary" onclick="window.__svSaveMode='pending'">Submit</button>` : `<button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Record'}</button>`}
       </div>
     </form>
   `);
   recalcSupervisorTotal();
+  if (editing) {
+    document.getElementById('sv-branch').value = editing.branch;
+    if (!isSelf) document.getElementById('sv-staff').value = editing.staffId;
+  }
 }
 function recalcSupervisorTotal() {
-  const q = Number(document.getElementById('sv-qty')?.value || 0);
+  const h = Number(document.getElementById('sv-hours')?.value || 0);
   const r = Number(document.getElementById('sv-rate')?.value || 0);
   const el = document.getElementById('sv-total-preview');
-  if (el) el.textContent = money(q * r);
+  if (el) el.textContent = money(h * r);
 }
 function submitSupervisor(e, editingId) {
   e.preventDefault();
+  const identity = getIdentity();
   const staffId = document.getElementById('sv-staff').value;
   const staff = staffById(staffId);
-  if (!staff) { showToast('Please add a staff member first.'); return; }
-  const qty = Number(document.getElementById('sv-qty').value) || 0;
+  if (!staff) { showToast('Please select a valid staff member.'); return; }
+  const workingHours = Number(document.getElementById('sv-hours').value) || 0;
   const rate = Number(document.getElementById('sv-rate').value) || 0;
+  const approvalStatus = identity.type === 'admin' ? document.getElementById('sv-approval').value : (window.__svSaveMode || 'draft');
+  const prevSubmittedAt = editingId ? findRecord('supervisor', editingId).submittedAt : '';
   const rec = {
     date: document.getElementById('sv-date').value,
+    branch: document.getElementById('sv-branch').value,
+    session: document.getElementById('sv-session').value.trim(),
     staffId, staffName: staff.name,
     exam: document.getElementById('sv-exam').value.trim(),
     detail: document.getElementById('sv-detail').value.trim(),
-    qty, rate, total: qty * rate,
-    status: document.getElementById('sv-status').value
+    workingHours, rate, total: workingHours * rate,
+    approvalStatus, submittedAt: approvalStatus === 'pending' ? todayStr() : prevSubmittedAt
   };
+  const next = deepClone(state);
   if (editingId) {
-    Object.assign(state.supervisor.find(r => r.id === editingId), rec);
-    showToast('Record updated.');
+    const existing = next.supervisor.find(r => r.id === editingId);
+    rec.paymentStatus = existing.paymentStatus;
+    rec.rejectReason = approvalStatus === 'rejected' ? existing.rejectReason : '';
+    Object.assign(existing, rec);
   } else {
-    state.supervisor.push({ id: uid('v'), ...rec });
-    showToast('Record added.');
+    next.supervisor.push(Object.assign({ id: uid('v'), paymentStatus: 'Pending', rejectReason: '' }, rec));
   }
-  saveState(); closeModal(); render();
+  window.__svSaveMode = null;
+  persistAndPublish(next, approvalStatus === 'pending' ? 'Submitted for approval.' : 'Saved.');
 }
 
-/* ---------- shared record ops ---------- */
-function toggleStatus(kind, id) {
-  const list = kind === 'checker' ? state.checker : state.supervisor;
-  const r = list.find(x => x.id === id);
-  r.status = r.status === 'Paid' ? 'Pending' : 'Paid';
-  saveState(); render();
-}
-function deleteRecord(kind, id) {
-  if (!confirm('Delete this record?')) return;
-  if (kind === 'checker') state.checker = state.checker.filter(r => r.id !== id);
-  else state.supervisor = state.supervisor.filter(r => r.id !== id);
-  saveState(); render();
-}
-
-/* ---------- reports ---------- */
-let reportMode = 'staff';
-function renderReports() {
-  const staffOpts = state.staff.map(s => `<option value="${escapeHtml(s.staffId)}">${escapeHtml(s.staffId)} — ${escapeHtml(s.name)}</option>`).join('');
-  const years = [...new Set(allRecords().map(r => yearKey(r.date)).filter(Boolean))].sort().reverse();
-  const yearOpts = (years.length ? years : [String(new Date().getFullYear())]).map(y => `<option>${y}</option>`).join('');
-
+/* ---------- Open Day ---------- */
+function renderOpenDaySection(identity) {
+  const rows = scopedList(identity, 'openday').slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const canAdd = canFillFor(identity, 'Open Day Examiner');
   return `
-    <div class="section-head"><div><h2>Reports</h2><p>Filter payment records</p></div></div>
-    <div class="segmented">
-      ${['staff','date','month','year'].map(m => `<button class="${reportMode === m ? 'active' : ''}" onclick="setReportMode('${m}')">${m[0].toUpperCase()+m.slice(1)}-wise</button>`).join('')}
+    <div class="section-head">
+      <div><h2>Open Day Session</h2><p>${rows.length} record${rows.length === 1 ? '' : 's'}</p></div>
+      ${canAdd ? `<button class="btn btn-primary btn-sm" onclick="openOpenDayModal()">+ Add Record</button>` : ''}
     </div>
+    ${rows.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Subject</th><th>Syllabus</th><th>Charge</th><th>Final Amount</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td class="num">${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.staffName)}</td>
+        <td>${escapeHtml(r.branch)}</td>
+        <td>${escapeHtml(r.subject)}</td>
+        <td>${escapeHtml(r.syllabus)}</td>
+        <td class="num">${money(r.charge)}</td>
+        <td class="num">${money(r.total)}</td>
+        <td>${approvalBadge(r.approvalStatus)}</td>
+        <td>${r.approvalStatus === 'approved' ? (canTogglePayment(identity, r) ? `<button class="pill pill-btn ${r.paymentStatus === 'Paid' ? 'success' : 'warning'}" onclick="togglePaymentStatus('openday','${r.id}')">${r.paymentStatus}</button>` : paymentBadge(r.paymentStatus)) : '—'}</td>
+        <td class="row-actions">${recordRowActions(identity, 'openday', r)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : emptyState('No Open Day records yet.')}
+  `;
+}
+function openOpenDayModal(id) {
+  const editing = id ? findRecord('openday', id) : null;
+  const identity = getIdentity();
+  const isSelf = identity.type === 'staff';
+  const defaultCharge = state.settings.openDayRate;
+  const staffFieldHtml = isSelf
+    ? `<input type="hidden" id="od-staff" value="${escapeHtml(identity.staff.staffId)}"><div class="field"><label>Staff</label><input type="text" value="${escapeHtml(identity.staff.name)}" disabled></div>`
+    : `<div class="field"><label>Staff</label><select id="od-staff" required>${staffOptions('Open Day Examiner')}</select></div>`;
+  showModal(`
+    <h3>${editing ? 'Edit Open Day Record' : 'Add Open Day Record'}</h3>
+    <form onsubmit="submitOpenDay(event, ${editing ? `'${id}'` : 'null'})">
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="od-date" value="${editing ? editing.date : todayStr()}" required></div>
+        ${staffFieldHtml}
+      </div>
+      <div class="field"><label>Branch</label><select id="od-branch">${branchOptions(editing ? editing.branch : (isSelf ? identity.staff.branch : state.branches[0]))}</select></div>
+      <div class="field"><label>Subject</label><input type="text" id="od-subject" value="${editing ? escapeHtml(editing.subject) : ''}" required></div>
+      <div class="field"><label>Exam / Test Syllabus Details</label><textarea id="od-syllabus" rows="2">${editing ? escapeHtml(editing.syllabus) : ''}</textarea></div>
+      <div class="field"><label>Per Open Day Charge</label><input type="number" id="od-charge" value="${editing ? editing.charge : defaultCharge}" min="0" step="0.01" required oninput="recalcOpenDayTotal()"></div>
+      <div class="total-preview"><span class="label">Final Amount</span><span class="value num" id="od-total-preview">${money(editing ? editing.total : defaultCharge)}</span></div>
+      ${identity.type === 'admin' ? `<div class="field" style="margin-top:14px;"><label>Approval Status</label><select id="od-approval">
+        <option value="draft" ${(!editing || editing.approvalStatus === 'draft') ? 'selected' : ''}>Draft</option>
+        <option value="pending" ${editing && editing.approvalStatus === 'pending' ? 'selected' : ''}>Pending Approval</option>
+        <option value="approved" ${editing && editing.approvalStatus === 'approved' ? 'selected' : ''}>Approved</option>
+        <option value="rejected" ${editing && editing.approvalStatus === 'rejected' ? 'selected' : ''}>Rejected</option>
+      </select></div>` : ''}
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        ${identity.type === 'staff' ? `<button type="submit" class="btn btn-ghost" onclick="window.__odSaveMode='draft'">Save as Draft</button><button type="submit" class="btn btn-primary" onclick="window.__odSaveMode='pending'">Submit</button>` : `<button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Record'}</button>`}
+      </div>
+    </form>
+  `);
+  recalcOpenDayTotal();
+  if (editing) {
+    document.getElementById('od-branch').value = editing.branch;
+    if (!isSelf) document.getElementById('od-staff').value = editing.staffId;
+  }
+}
+function recalcOpenDayTotal() {
+  const c = Number(document.getElementById('od-charge')?.value || 0);
+  const el = document.getElementById('od-total-preview');
+  if (el) el.textContent = money(c);
+}
+function submitOpenDay(e, editingId) {
+  e.preventDefault();
+  const identity = getIdentity();
+  const staffId = document.getElementById('od-staff').value;
+  const staff = staffById(staffId);
+  if (!staff) { showToast('Please select a valid staff member.'); return; }
+  const charge = Number(document.getElementById('od-charge').value) || 0;
+  const approvalStatus = identity.type === 'admin' ? document.getElementById('od-approval').value : (window.__odSaveMode || 'draft');
+  const prevSubmittedAt = editingId ? findRecord('openday', editingId).submittedAt : '';
+  const rec = {
+    date: document.getElementById('od-date').value,
+    branch: document.getElementById('od-branch').value,
+    staffId, staffName: staff.name,
+    subject: document.getElementById('od-subject').value.trim(),
+    syllabus: document.getElementById('od-syllabus').value.trim(),
+    charge, total: charge,
+    approvalStatus, submittedAt: approvalStatus === 'pending' ? todayStr() : prevSubmittedAt
+  };
+  const next = deepClone(state);
+  if (editingId) {
+    const existing = next.openday.find(r => r.id === editingId);
+    rec.paymentStatus = existing.paymentStatus;
+    rec.rejectReason = approvalStatus === 'rejected' ? existing.rejectReason : '';
+    Object.assign(existing, rec);
+  } else {
+    next.openday.push(Object.assign({ id: uid('o'), paymentStatus: 'Pending', rejectReason: '' }, rec));
+  }
+  window.__odSaveMode = null;
+  persistAndPublish(next, approvalStatus === 'pending' ? 'Submitted for approval.' : 'Saved.');
+}
+
+/* ---------- approvals tab ---------- */
+function renderApprovalsTab(identity) {
+  if (identity.type === 'staff' && !identity.isCoordinator) return emptyState('Not available.');
+  const branch = scopeBranch(identity);
+  let rows = [
+    ...state.checker.map(r => Object.assign({}, r, { kind: 'checker', type: 'Paper Checker', dateKey: r.dateOfPaper })),
+    ...state.supervisor.map(r => Object.assign({}, r, { kind: 'supervisor', type: 'Supervisor', dateKey: r.date })),
+    ...state.openday.map(r => Object.assign({}, r, { kind: 'openday', type: 'Open Day', dateKey: r.date }))
+  ];
+  if (branch) rows = rows.filter(r => r.branch === branch);
+  if (approvalsFilter !== 'all') rows = rows.filter(r => r.approvalStatus === approvalsFilter);
+  rows.sort((a, b) => (b.dateKey || '').localeCompare(a.dateKey || ''));
+  return `
+    <div class="section-head"><div><h2>Approvals</h2><p>${identity.type === 'admin' ? 'All branches' : escapeHtml(identity.branch) + ' branch'}</p></div></div>
+    <div class="segmented">${['pending', 'approved', 'rejected', 'all'].map(f => `<button class="${approvalsFilter === f ? 'active' : ''}" onclick="setApprovalsFilter('${f}')">${f[0].toUpperCase() + f.slice(1)}</button>`).join('')}</div>
+    ${rows.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Branch</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td class="num">${escapeHtml(r.dateKey)}</td>
+        <td>${escapeHtml(r.staffName)}</td>
+        <td>${r.type}</td>
+        <td>${escapeHtml(r.branch)}</td>
+        <td class="num">${money(r.total)}</td>
+        <td>${approvalBadge(r.approvalStatus)}${r.approvalStatus === 'rejected' && r.rejectReason ? `<div class="helper">${escapeHtml(r.rejectReason)}</div>` : ''}</td>
+        <td class="row-actions">
+          ${r.approvalStatus === 'pending' && canReviewRecord(identity, r) ? `<button class="btn btn-primary btn-sm" onclick="approveRecord('${r.kind}','${r.id}')">Approve</button><button class="btn btn-danger btn-sm" onclick="openRejectModal('${r.kind}','${r.id}')">Reject</button>` : ''}
+          ${r.approvalStatus !== 'pending' && r.approvalStatus !== 'draft' && (identity.type === 'admin' || canReviewRecord(identity, r)) ? `<button class="btn btn-ghost btn-sm" onclick="reopenRecord('${r.kind}','${r.id}')">Reopen</button>` : ''}
+        </td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : emptyState('No records in this filter.')}
+  `;
+}
+function setApprovalsFilter(f) { approvalsFilter = f; render(); }
+
+/* ---------- reports tab ---------- */
+function reportsCombinedRows(identity) {
+  const branch = scopeBranch(identity);
+  let rows = [
+    ...state.checker.map(r => Object.assign({}, r, { type: 'Paper Checker', dateKey: r.dateOfPaper })),
+    ...state.supervisor.map(r => Object.assign({}, r, { type: 'Supervisor', dateKey: r.date })),
+    ...state.openday.map(r => Object.assign({}, r, { type: 'Open Day', dateKey: r.date }))
+  ];
+  if (branch) rows = rows.filter(r => r.branch === branch);
+  if (identity.type === 'staff' && !identity.isCoordinator) rows = rows.filter(r => r.staffId === identity.staff.staffId);
+  return rows;
+}
+function renderReportsTab(identity) {
+  if (identity.type === 'staff' && !identity.isCoordinator) return emptyState('Not available.');
+  const scopedStaff = identity.type === 'admin' ? state.staff : state.staff.filter(s => s.branch === identity.branch);
+  const staffOpts = scopedStaff.map(s => `<option value="${escapeHtml(s.staffId)}">${escapeHtml(s.staffId)} — ${escapeHtml(s.name)}</option>`).join('');
+  const years = [...new Set(reportsCombinedRows(identity).map(r => yearKey(r.dateKey)).filter(Boolean))].sort().reverse();
+  const yearOpts = (years.length ? years : [String(new Date().getFullYear())]).map(y => `<option>${y}</option>`).join('');
+  return `
+    <div class="section-head"><div><h2>Reports</h2><p>${identity.type === 'admin' ? 'All branches' : escapeHtml(identity.branch) + ' branch'}</p></div></div>
+    <div class="segmented">${['staff', 'date', 'month', 'year'].map(m => `<button class="${reportMode === m ? 'active' : ''}" onclick="setReportMode('${m}')">${m[0].toUpperCase() + m.slice(1)}-wise</button>`).join('')}</div>
     <div class="filter-bar">
       ${reportMode === 'staff' ? `<select id="rep-staff" onchange="renderReportResults()"><option value="">Select staff…</option>${staffOpts}</select>` : ''}
       ${reportMode === 'date' ? `<input type="date" id="rep-date" value="${todayStr()}" onchange="renderReportResults()">` : ''}
-      ${reportMode === 'month' ? `<input type="month" id="rep-month" value="${todayStr().slice(0,7)}" onchange="renderReportResults()">` : ''}
+      ${reportMode === 'month' ? `<input type="month" id="rep-month" value="${todayStr().slice(0, 7)}" onchange="renderReportResults()">` : ''}
       ${reportMode === 'year' ? `<select id="rep-year" onchange="renderReportResults()">${yearOpts}</select>` : ''}
     </div>
     <div id="report-results"></div>
@@ -816,63 +1188,208 @@ function setReportMode(m) { reportMode = m; render(); setTimeout(renderReportRes
 function renderReportResults() {
   const el = document.getElementById('report-results');
   if (!el) return;
-  let rows = allRecords();
-  let title = '';
+  const identity = getIdentity();
+  let rows = reportsCombinedRows(identity);
   if (reportMode === 'staff') {
     const id = document.getElementById('rep-staff')?.value;
     if (!id) { el.innerHTML = emptyState('Choose a staff member to see their records.'); return; }
     rows = rows.filter(r => r.staffId === id);
-    title = staffById(id) ? staffById(id).name : id;
   } else if (reportMode === 'date') {
     const d = document.getElementById('rep-date')?.value;
-    rows = rows.filter(r => r.date === d); title = d;
+    rows = rows.filter(r => r.dateKey === d);
   } else if (reportMode === 'month') {
     const m = document.getElementById('rep-month')?.value;
-    rows = rows.filter(r => monthKey(r.date) === m); title = m;
+    rows = rows.filter(r => monthKey(r.dateKey) === m);
   } else if (reportMode === 'year') {
     const y = document.getElementById('rep-year')?.value;
-    rows = rows.filter(r => yearKey(r.date) === y); title = y;
+    rows = rows.filter(r => yearKey(r.dateKey) === y);
   }
-  rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const total = rows.reduce((s, r) => s + Number(r.total || 0), 0);
-  const paid = rows.filter(r => r.status === 'Paid').reduce((s, r) => s + Number(r.total || 0), 0);
+  rows.sort((a, b) => (b.dateKey || '').localeCompare(a.dateKey || ''));
+  const approved = rows.filter(r => r.approvalStatus === 'approved');
+  const total = approved.reduce((s, r) => s + Number(r.total || 0), 0);
+  const paid = approved.filter(r => r.paymentStatus === 'Paid').reduce((s, r) => s + Number(r.total || 0), 0);
   const pending = total - paid;
-
+  const notYetApproved = rows.length - approved.length;
   el.innerHTML = `
     <div class="stat-grid">
-      <div class="stat-tile accent"><div class="label">Total</div><div class="value num">${money(total)}</div></div>
+      <div class="stat-tile accent"><div class="label">Approved Total</div><div class="value num">${money(total)}</div></div>
       <div class="stat-tile"><div class="label">Paid</div><div class="value num">${money(paid)}</div></div>
-      <div class="stat-tile warning" style="grid-column:1/-1"><div class="label">Pending</div><div class="value num">${money(pending)}</div></div>
+      <div class="stat-tile warning" style="grid-column:1/-1"><div class="label">Pending Payment</div><div class="value num">${money(pending)}</div></div>
     </div>
-    ${rows.length ? `
-      <div class="table-wrap"><table>
-        <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Exam</th><th>Amount</th><th>Status</th></tr></thead>
-        <tbody>
-          ${rows.map(r => `<tr>
-            <td class="num">${escapeHtml(r.date)}</td>
-            <td>${escapeHtml(r.staffName)}</td>
-            <td>${r.type}</td>
-            <td>${escapeHtml(r.exam)}</td>
-            <td class="num">${money(r.total)}</td>
-            <td>${statusPill(r.status)}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table></div>
-    ` : emptyState('No records found for this filter.')}
+    ${notYetApproved ? `<p class="helper" style="margin-bottom:10px;">${notYetApproved} record${notYetApproved === 1 ? '' : 's'} not yet approved — excluded from totals above.</p>` : ''}
+    ${rows.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Branch</th><th>Amount</th><th>Approval</th><th>Payment</th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td class="num">${escapeHtml(r.dateKey)}</td>
+        <td>${escapeHtml(r.staffName)}</td>
+        <td>${r.type}</td>
+        <td>${escapeHtml(r.branch)}</td>
+        <td class="num">${money(r.total)}</td>
+        <td>${approvalBadge(r.approvalStatus)}</td>
+        <td>${r.approvalStatus === 'approved' ? paymentBadge(r.paymentStatus) : '—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : emptyState('No records found for this filter.')}
   `;
 }
 
+/* ---------- exports: CSV + PDF ---------- */
+function csvEscape(v) { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function buildCsv(columns, rows) {
+  const lines = [columns.map(c => csvEscape(c.label)).join(',')];
+  rows.forEach(r => lines.push(columns.map(c => csvEscape(r[c.key])).join(',')));
+  return '﻿' + lines.join('\r\n');
+}
+function buildPdf(opts) {
+  const title = opts.title, subtitle = opts.subtitle || '', columns = opts.columns, dataRows = opts.rows, totalsLines = opts.totalsLines || [];
+  const pageWidth = 841.89, pageHeight = 595.28, margin = 30;
+  const rowHeight = 14, topBlock = 62;
+  const bottomReserve = totalsLines.length ? totalsLines.length * 14 + 10 : 0;
+  const rowsPerPage = Math.max(6, Math.floor((pageHeight - margin * 2 - topBlock - bottomReserve) / rowHeight));
+  const pages = [];
+  for (let i = 0; i < dataRows.length; i += rowsPerPage) pages.push(dataRows.slice(i, i + rowsPerPage));
+  if (!pages.length) pages.push([]);
+  const esc = s => String(s ?? '').split('').map(c => c.charCodeAt(0) > 255 ? '?' : c).join('').replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+  const objects = [];
+  function reserve() { objects.push(''); return objects.length; }
+  function setObj(n, c) { objects[n - 1] = c; }
+  const catalogNum = reserve(), pagesNum = reserve(), fontRegNum = reserve(), fontBoldNum = reserve();
+  setObj(fontRegNum, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  setObj(fontBoldNum, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+  const kidNums = [];
+  pages.forEach((pageRows, pageIdx) => {
+    let y = pageHeight - margin;
+    const lines = [];
+    lines.push({ x: margin, y, size: 13, font: 'F2', t: title }); y -= 16;
+    if (subtitle) { lines.push({ x: margin, y, size: 9, font: 'F1', t: subtitle }); y -= 13; }
+    lines.push({ x: pageWidth - margin - 80, y: pageHeight - margin, size: 8, font: 'F1', t: `Page ${pageIdx + 1}/${pages.length}` });
+    y -= 6;
+    let x = margin;
+    columns.forEach(col => { lines.push({ x, y, size: 8, font: 'F2', t: col.label }); x += col.width; });
+    y -= 12;
+    pageRows.forEach(row => {
+      x = margin;
+      columns.forEach(col => { lines.push({ x, y, size: 8, font: 'F1', t: String(row[col.key] ?? '') }); x += col.width; });
+      y -= rowHeight;
+    });
+    if (pageIdx === pages.length - 1 && totalsLines.length) {
+      y -= 6;
+      totalsLines.forEach(tl => { lines.push({ x: margin, y, size: 10, font: 'F2', t: tl }); y -= 14; });
+    }
+    let stream = 'BT\n';
+    lines.forEach(l => { stream += `/${l.font} ${l.size} Tf\n1 0 0 1 ${l.x.toFixed(2)} ${l.y.toFixed(2)} Tm\n(${esc(l.t)}) Tj\n`; });
+    stream += 'ET\n';
+    const contentNum = reserve();
+    setObj(contentNum, `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+    const pageNum = reserve();
+    setObj(pageNum, `<< /Type /Page /Parent ${pagesNum} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontRegNum} 0 R /F2 ${fontBoldNum} 0 R >> >> /Contents ${contentNum} 0 R >>`);
+    kidNums.push(pageNum);
+  });
+  setObj(catalogNum, `<< /Type /Catalog /Pages ${pagesNum} 0 R >>`);
+  setObj(pagesNum, `<< /Type /Pages /Kids [${kidNums.map(n => n + ' 0 R').join(' ')}] /Count ${kidNums.length} >>`);
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  objects.forEach((obj, idx) => { offsets.push(pdf.length); pdf += `${idx + 1} 0 obj\n${obj}\nendobj\n`; });
+  const xrefStart = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (let i = 1; i <= objects.length; i++) pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogNum} 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  const bytes = new Uint8Array(pdf.length);
+  for (let i = 0; i < pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xFF;
+  return new Blob([bytes], { type: 'application/pdf' });
+}
+async function offerDownload(filename, data, fallbackCsvText) {
+  const dl = await downloadsCapPromise;
+  if (!dl) { showToast('Downloads are not available in this view.'); return; }
+  try {
+    await dl.save({ filename, data });
+    showToast('Download started.');
+  } catch (err) {
+    const code = err && err.code;
+    if ((code === 'extension_not_enabled' || code === 'rejected_extension') && fallbackCsvText) {
+      const altName = filename.replace(/\.[^.]+$/, '.txt');
+      try { await dl.save({ filename: altName, data: fallbackCsvText }); showToast('That file type is not enabled here — downloaded as .txt instead.'); }
+      catch (e2) { showToast('Download is not available in this view.'); }
+    } else if (code === 'declined') {
+      /* user cancelled — no toast */
+    } else {
+      showToast('Could not prepare the download. Please try again.');
+    }
+  }
+}
+function downloadCheckerCsv() {
+  const identity = getIdentity();
+  const rows = scopedList(identity, 'checker');
+  const columns = [
+    { key: 'dateOfPaper', label: 'Date of Paper' }, { key: 'branch', label: 'Branch' }, { key: 'staffName', label: 'Staff Name' },
+    { key: 'exam', label: 'Test/Exam Name' }, { key: 'subject', label: 'Subject' }, { key: 'marks', label: 'Paper Marks' },
+    { key: 'numPapers', label: 'Papers Checked' }, { key: 'rate', label: 'Rate' }, { key: 'answerKeyCharge', label: 'Answer Key Charge' },
+    { key: 'total', label: 'Final Payment' }, { key: 'issuedByName', label: 'Paper Issued By' }, { key: 'collectedByName', label: 'Paper Collected By' },
+    { key: 'approvalStatus', label: 'Approval Status' }
+  ];
+  const csv = buildCsv(columns, rows.map(r => Object.assign({}, r, { rate: money(r.rate), answerKeyCharge: money(r.answerKeyCharge), total: money(r.total) })));
+  offerDownload('paper-checker-records.csv', csv);
+}
+function downloadCheckerPdf() {
+  const identity = getIdentity();
+  const rows = scopedList(identity, 'checker');
+  const columns = [
+    { key: 'dateOfPaper', label: 'Date', width: 62 }, { key: 'branch', label: 'Branch', width: 78 }, { key: 'staffName', label: 'Staff', width: 90 },
+    { key: 'exam', label: 'Exam', width: 110 }, { key: 'subject', label: 'Subject', width: 70 }, { key: 'numPapers', label: 'Papers', width: 45 },
+    { key: 'rate', label: 'Rate', width: 55 }, { key: 'answerKeyCharge', label: 'Ans. Key', width: 55 }, { key: 'total', label: 'Total', width: 65 },
+    { key: 'issuedByName', label: 'Issued By', width: 80 }, { key: 'collectedByName', label: 'Collected By', width: 80 }, { key: 'approvalStatus', label: 'Status', width: 65 }
+  ];
+  const rowsData = rows.map(r => ({ dateOfPaper: r.dateOfPaper, branch: r.branch, staffName: r.staffName, exam: r.exam, subject: r.subject, numPapers: r.numPapers, rate: moneyPlain(r.rate), answerKeyCharge: moneyPlain(r.answerKeyCharge), total: moneyPlain(r.total), issuedByName: r.issuedByName, collectedByName: r.collectedByName, approvalStatus: r.approvalStatus }));
+  const grandTotal = rows.filter(r => r.approvalStatus === 'approved').reduce((s, r) => s + Number(r.total || 0), 0);
+  const blob = buildPdf({ title: 'Paper Checker Records', subtitle: `Generated ${todayStr()}`, columns, rows: rowsData, totalsLines: [`Approved Total: ${moneyPlain(grandTotal)}`] });
+  const columnsCsv = [{ key: 'dateOfPaper', label: 'Date of Paper' }, { key: 'branch', label: 'Branch' }, { key: 'staffName', label: 'Staff Name' }, { key: 'exam', label: 'Exam' }, { key: 'subject', label: 'Subject' }, { key: 'numPapers', label: 'Papers' }, { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Total' }, { key: 'approvalStatus', label: 'Status' }];
+  offerDownload('paper-checker-records.pdf', blob, buildCsv(columnsCsv, rowsData));
+}
+function downloadSupervisorCsv() {
+  const identity = getIdentity();
+  const rows = scopedList(identity, 'supervisor');
+  const columns = [
+    { key: 'date', label: 'Date' }, { key: 'branch', label: 'Branch' }, { key: 'session', label: 'Session' }, { key: 'staffName', label: 'Staff Name' },
+    { key: 'exam', label: 'Test/Exam Name' }, { key: 'detail', label: 'Supervision Details' }, { key: 'workingHours', label: 'Working Hours' },
+    { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Final Payment' }, { key: 'approvalStatus', label: 'Approval Status' }
+  ];
+  const csv = buildCsv(columns, rows.map(r => Object.assign({}, r, { rate: money(r.rate), total: money(r.total) })));
+  offerDownload('supervisor-records.csv', csv);
+}
+function downloadSupervisorPdf() {
+  const identity = getIdentity();
+  const rows = scopedList(identity, 'supervisor');
+  const columns = [
+    { key: 'date', label: 'Date', width: 62 }, { key: 'branch', label: 'Branch', width: 80 }, { key: 'session', label: 'Session', width: 55 },
+    { key: 'staffName', label: 'Staff', width: 90 }, { key: 'exam', label: 'Exam', width: 120 }, { key: 'detail', label: 'Details', width: 130 },
+    { key: 'workingHours', label: 'Hours', width: 45 }, { key: 'rate', label: 'Rate', width: 55 }, { key: 'total', label: 'Total', width: 65 }, { key: 'approvalStatus', label: 'Status', width: 65 }
+  ];
+  const rowsData = rows.map(r => ({ date: r.date, branch: r.branch, session: r.session, staffName: r.staffName, exam: r.exam, detail: r.detail, workingHours: r.workingHours, rate: moneyPlain(r.rate), total: moneyPlain(r.total), approvalStatus: r.approvalStatus }));
+  const grandTotal = rows.filter(r => r.approvalStatus === 'approved').reduce((s, r) => s + Number(r.total || 0), 0);
+  const blob = buildPdf({ title: 'Supervisor Records', subtitle: `Generated ${todayStr()}`, columns, rows: rowsData, totalsLines: [`Approved Total: ${moneyPlain(grandTotal)}`] });
+  const columnsCsv = [{ key: 'date', label: 'Date' }, { key: 'branch', label: 'Branch' }, { key: 'staffName', label: 'Staff Name' }, { key: 'exam', label: 'Exam' }, { key: 'workingHours', label: 'Hours' }, { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Total' }, { key: 'approvalStatus', label: 'Status' }];
+  offerDownload('supervisor-records.pdf', blob, buildCsv(columnsCsv, rowsData));
+}
+
 /* ---------- settings ---------- */
-function renderSettings() {
+function renderSettingsTab(identity) {
+  if (identity.type !== 'admin') return emptyState('Not available.');
   return `
-    <div class="section-head"><div><h2>Settings</h2><p>Default rates and admin access</p></div></div>
+    <div class="section-head"><div><h2>Settings</h2><p>Rates, branches and admin access</p></div></div>
     <div class="card">
       <h3>Default Payment Rates</h3>
       <form onsubmit="saveRates(event)">
         <div class="field"><label>Default Rate per Paper (Checker)</label><input type="number" id="set-checkerRate" value="${state.settings.checkerRate}" min="0" step="0.01" required></div>
-        <div class="field"><label>Default Rate (Supervisor)</label><input type="number" id="set-supervisorRate" value="${state.settings.supervisorRate}" min="0" step="0.01" required></div>
-        <p class="helper" style="margin-bottom:12px;">These amounts auto-fill new records. Each record's rate can still be changed individually.</p>
+        <div class="field"><label>Default Rate per Hour (Supervisor)</label><input type="number" id="set-supervisorRate" value="${state.settings.supervisorRate}" min="0" step="0.01" required></div>
+        <div class="field"><label>Default Per Open Day Charge</label><input type="number" id="set-openDayRate" value="${state.settings.openDayRate}" min="0" step="0.01" required></div>
         <button type="submit" class="btn btn-primary">Save Rates</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Branches</h3>
+      ${state.branches.map(b => `<div class="branch-row"><span>${escapeHtml(b)}</span><button class="btn btn-danger btn-sm" onclick="removeBranch('${escapeHtml(b).replace(/'/g, "\\'")}')">Remove</button></div>`).join('')}
+      <form onsubmit="addBranch(event)" style="margin-top:10px;display:flex;gap:8px;">
+        <input type="text" id="new-branch-name" placeholder="New branch name" required style="flex:1;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);">
+        <button type="submit" class="btn btn-primary btn-sm">Add</button>
       </form>
     </div>
     <div class="card">
@@ -885,47 +1402,56 @@ function renderSettings() {
     </div>
     <div class="card">
       <h3>Reset Data</h3>
-      <p class="helper" style="margin-bottom:12px;">Permanently erase all staff and payment records on this device. This cannot be undone.</p>
+      <p class="helper" style="margin-bottom:12px;">Permanently erase all staff and payment records for everyone. This cannot be undone.</p>
       <button class="btn btn-danger btn-block" onclick="resetAllData()">Erase All Data</button>
     </div>
   `;
 }
 function saveRates(e) {
   e.preventDefault();
-  state.settings.checkerRate = Number(document.getElementById('set-checkerRate').value) || 0;
-  state.settings.supervisorRate = Number(document.getElementById('set-supervisorRate').value) || 0;
-  saveState(); showToast('Default rates saved.');
+  const next = deepClone(state);
+  next.settings.checkerRate = Number(document.getElementById('set-checkerRate').value) || 0;
+  next.settings.supervisorRate = Number(document.getElementById('set-supervisorRate').value) || 0;
+  next.settings.openDayRate = Number(document.getElementById('set-openDayRate').value) || 0;
+  persistAndPublish(next, 'Default rates saved.');
+}
+function addBranch(e) {
+  e.preventDefault();
+  const name = document.getElementById('new-branch-name').value.trim();
+  if (!name) return;
+  if (state.branches.some(b => b.toLowerCase() === name.toLowerCase())) { showToast('Branch already exists.'); return; }
+  const next = deepClone(state);
+  next.branches.push(name);
+  persistAndPublish(next, 'Branch added.');
+}
+function removeBranch(name) {
+  if (state.staff.some(s => s.branch === name)) { showToast('Cannot remove a branch that has staff assigned.'); return; }
+  if (!confirm(`Remove branch "${name}"?`)) return;
+  const next = deepClone(state);
+  next.branches = next.branches.filter(b => b !== name);
+  persistAndPublish(next, 'Branch removed.');
 }
 function changePassword(e) {
   e.preventDefault();
   const cur = document.getElementById('set-currentPw').value;
-  const next = document.getElementById('set-newPw').value;
-  if (cur !== state.settings.password) { showToast('Current password is incorrect.'); return; }
-  state.settings.password = next; saveState();
-  document.getElementById('set-currentPw').value = ''; document.getElementById('set-newPw').value = '';
-  showToast('Password updated.');
+  const newPw = document.getElementById('set-newPw').value;
+  if (cur !== state.settings.adminPassword) { showToast('Current password is incorrect.'); return; }
+  const next = deepClone(state);
+  next.settings.adminPassword = newPw;
+  persistAndPublish(next, 'Password updated.');
 }
 function resetAllData() {
-  if (!confirm('This will delete ALL staff and payment records on this device. Continue?')) return;
+  if (!confirm('This will delete ALL staff and payment records for everyone. Continue?')) return;
   if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
-  const pw = state.settings.password;
-  state = defaultState();
-  state.staff = []; state.checker = []; state.supervisor = [];
-  state.settings.password = pw;
-  saveState(); render(); showToast('All data erased.');
-}
-
-/* ---------- modal ---------- */
-function showModal(html) {
-  document.getElementById('modal-root').innerHTML = `<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal">${html}</div></div>`;
-}
-function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
-function emptyState(msg) {
-  return `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg><div>${escapeHtml(msg)}</div></div>`;
+  const next = defaultState();
+  next.settings.adminPassword = state.settings.adminPassword;
+  next.staff = []; next.checker = []; next.supervisor = []; next.openday = [];
+  persistAndPublish(next, 'All data erased.');
 }
 
 /* ---------- boot ---------- */
-(function init() {
-  if (state.auth) showApp();
-})();
+whenBodyReady(function init() {
+  const identity = getIdentity();
+  if (identity) showApp(); else showLoginScreen();
+});
 </script>
