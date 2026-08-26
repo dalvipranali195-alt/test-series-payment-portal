@@ -1,0 +1,921 @@
+<title>Staff Payment Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F3F5F3;
+    --surface: #FFFFFF;
+    --surface-2: #EBEFEC;
+    --border: #DCE3DE;
+    --text: #1B231E;
+    --text-muted: #5C6A61;
+    --accent: #235C52;
+    --accent-strong: #17423B;
+    --accent-soft: #DCEAE6;
+    --on-accent: #F4FBF9;
+    --success: #276B41;
+    --success-soft: #E1F0E4;
+    --warning: #9A6A16;
+    --warning-soft: #FBEEDA;
+    --danger: #A4382F;
+    --danger-soft: #F7E4E1;
+    --shadow: 0 1px 2px rgba(20, 30, 25, 0.06), 0 6px 20px rgba(20, 30, 25, 0.05);
+    --radius: 10px;
+    --font-display: "Sora", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101613;
+      --surface: #171E1A;
+      --surface-2: #1E2621;
+      --border: #2B3630;
+      --text: #E7EEE9;
+      --text-muted: #93A29A;
+      --accent: #55B39F;
+      --accent-strong: #7CCAB8;
+      --accent-soft: #1E332E;
+      --on-accent: #08130F;
+      --success: #6FC38C;
+      --success-soft: #17281C;
+      --warning: #E0AC53;
+      --warning-soft: #2E2413;
+      --danger: #E38A80;
+      --danger-soft: #301E1B;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101613;
+    --surface: #171E1A;
+    --surface-2: #1E2621;
+    --border: #2B3630;
+    --text: #E7EEE9;
+    --text-muted: #93A29A;
+    --accent: #55B39F;
+    --accent-strong: #7CCAB8;
+    --accent-soft: #1E332E;
+    --on-accent: #08130F;
+    --success: #6FC38C;
+    --success-soft: #17281C;
+    --warning: #E0AC53;
+    --warning-soft: #2E2413;
+    --danger: #E38A80;
+    --danger-soft: #301E1B;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: var(--font-body); -webkit-tap-highlight-color: transparent;
+  }
+  body { min-height: 100vh; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  input, select, button, textarea { font-family: inherit; font-size: 16px; }
+  button { cursor: pointer; }
+  ::selection { background: var(--accent-soft); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  #login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg);
+  }
+  .login-card {
+    width: 100%; max-width: 360px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 32px 28px; box-shadow: var(--shadow);
+  }
+  .login-mark {
+    width: 44px; height: 44px; border-radius: 10px; background: var(--accent);
+    color: var(--on-accent); display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+  }
+  .login-card h1 { font-size: 21px; color: var(--text); margin-bottom: 4px; }
+  .login-card p.sub { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--text); outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 18px; border-radius: 8px; border: 1px solid transparent;
+    font-weight: 600; font-size: 15px; min-height: 44px; transition: filter .15s, background .15s;
+  }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); width: 100%; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { background: transparent; color: var(--accent); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: var(--border); }
+  .btn-danger:hover { background: var(--danger-soft); }
+  .btn-sm { min-height: 34px; padding: 6px 12px; font-size: 13px; }
+  .btn-block { width: 100%; }
+  .login-error { color: var(--danger); font-size: 13px; margin: -8px 0 14px; min-height: 16px; }
+  .login-hint { margin-top: 18px; font-size: 12px; color: var(--text-muted); background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  .app-shell {
+    max-width: 560px; margin: 0 auto; width: 100%; min-height: 100vh;
+    display: flex; flex-direction: column; background: var(--bg);
+    box-shadow: var(--shadow);
+  }
+  header.topbar {
+    position: sticky; top: 0; z-index: 20; background: var(--surface);
+    border-bottom: 1px solid var(--border); padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  header.topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  header.topbar .brand .mark {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--accent); color: var(--on-accent);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  header.topbar .brand .titles { min-width: 0; }
+  header.topbar .brand h1 { font-size: 15px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header.topbar .brand .tab-label { font-size: 12px; color: var(--text-muted); }
+  header.topbar .icon-btn {
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+  }
+  header.topbar .icon-btn:hover { background: var(--surface-2); color: var(--danger); }
+
+  main#content { flex: 1; padding: 18px 16px 96px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 19px; }
+  .section-head p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; }
+
+  nav.tabbar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 560px; background: var(--surface); border-top: 1px solid var(--border);
+    display: flex; z-index: 30; padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  nav.tabbar button {
+    flex: 1; background: transparent; border: none; padding: 8px 2px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    color: var(--text-muted); font-size: 10.5px; font-weight: 500;
+  }
+  nav.tabbar button svg { width: 20px; height: 20px; }
+  nav.tabbar button.active { color: var(--accent); }
+  nav.tabbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: 15px; margin-bottom: 12px; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; box-shadow: var(--shadow);
+  }
+  .stat-tile .label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  .stat-tile .value { font-family: var(--font-mono); font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat-tile.accent { background: var(--accent-soft); border-color: transparent; }
+  .stat-tile.accent .value { color: var(--accent-strong); }
+  .stat-tile.warning .value { color: var(--warning); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+  }
+  .pill.success { background: var(--success-soft); color: var(--success); }
+  .pill.warning { background: var(--warning-soft); color: var(--warning); }
+  .pill.danger { background: var(--danger-soft); color: var(--danger); }
+  .pill.neutral { background: var(--surface-2); color: var(--text-muted); }
+  .pill-btn { border: none; cursor: pointer; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 13.5px; }
+  thead th {
+    position: sticky; top: 0; background: var(--surface-2); text-align: left; padding: 10px 12px;
+    font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--text-muted); white-space: nowrap;
+  }
+  tbody td { padding: 10px 12px; border-top: 1px solid var(--border); white-space: nowrap; }
+  tbody tr:hover { background: var(--surface-2); }
+  .row-actions { display: flex; gap: 6px; }
+
+  .empty-state {
+    text-align: center; padding: 36px 20px; color: var(--text-muted); font-size: 14px;
+    background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius);
+  }
+  .empty-state svg { width: 34px; height: 34px; margin-bottom: 10px; color: var(--text-muted); opacity: .6; }
+
+  .fab {
+    position: fixed; left: 50%; transform: translateX(calc(-50% + 220px));
+    bottom: 78px; z-index: 25; width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent); color: var(--on-accent); border: none; box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: center;
+  }
+  @media (max-width: 599px) { .fab { transform: translateX(0); right: 16px; left: auto; } }
+
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(10, 16, 12, .45); z-index: 50;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  @media (min-width: 601px) { .modal-backdrop { align-items: center; } }
+  .modal {
+    background: var(--surface); width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
+    border-radius: 16px 16px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0));
+    box-shadow: var(--shadow);
+  }
+  @media (min-width: 601px) { .modal { border-radius: 14px; } }
+  .modal h3 { font-size: 17px; margin-bottom: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .form-actions .btn { flex: 1; }
+  .helper { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .total-preview {
+    background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; margin-top: 4px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .total-preview .label { font-size: 13px; color: var(--text-muted); }
+  .total-preview .value { font-family: var(--font-mono); font-size: 19px; font-weight: 600; color: var(--accent-strong); }
+
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-bar select, .filter-bar input { padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+  .segmented { display: flex; background: var(--surface-2); border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 14px; }
+  .segmented button { flex: 1; border: none; background: transparent; padding: 8px 6px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .segmented button.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+
+  .toast {
+    position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); z-index: 60;
+    background: var(--accent-strong); color: var(--on-accent); padding: 10px 18px; border-radius: 999px;
+    font-size: 13.5px; font-weight: 500; box-shadow: var(--shadow); opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+    </div>
+    <h1>Staff Payment Portal</h1>
+    <p class="sub">Sign in to manage staff and payments.</p>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="field">
+        <label for="login-password">Admin Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button type="submit" class="btn btn-primary">Log In</button>
+    </form>
+    <div class="login-hint">First time here? The default password is <strong>admin123</strong>. You can change it later under <strong>Settings</strong>.</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+        </div>
+        <div class="titles">
+          <h1>Staff Payment Portal</h1>
+          <div class="tab-label" id="tab-label">Dashboard</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="handleLogout()" title="Log out" aria-label="Log out">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </header>
+
+    <main id="content"></main>
+
+    <nav class="tabbar" id="tabbar">
+      <button data-tab="dashboard" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </button>
+      <button data-tab="staff" onclick="switchTab('staff')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Staff
+      </button>
+      <button data-tab="checker" onclick="switchTab('checker')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Checker
+      </button>
+      <button data-tab="supervisor" onclick="switchTab('supervisor')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        Supervise
+      </button>
+      <button data-tab="reports" onclick="switchTab('reports')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports
+      </button>
+      <button data-tab="settings" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+/* ---------- storage ---------- */
+const STORE_KEY = 'tspp_v1';
+const defaultState = () => ({
+  auth: false,
+  settings: { password: 'admin123', checkerRate: 15, supervisorRate: 300 },
+  staff: [
+    { staffId: 'S001', name: 'Anita Sharma', role: 'Paper Checker', active: true },
+    { staffId: 'S002', name: 'Rohan Mehta', role: 'Supervisor', active: true }
+  ],
+  checker: [
+    { id: 'c_demo1', date: todayStr(), staffId: 'S001', staffName: 'Anita Sharma', exam: 'Test Series - Mock 3', subject: 'Physics', marks: 100, numPapers: 40, rate: 15, total: 600, status: 'Pending' }
+  ],
+  supervisor: [
+    { id: 'v_demo1', date: todayStr(), staffId: 'S002', staffName: 'Rohan Mehta', exam: 'Test Series - Mock 3', detail: 'Hall A, morning session', qty: 1, rate: 300, total: 300, status: 'Paid' }
+  ]
+});
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultState(), parsed, {
+      settings: Object.assign(defaultState().settings, parsed.settings || {})
+    });
+  } catch (e) { return defaultState(); }
+}
+function saveState() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+let state = loadState();
+let currentTab = 'dashboard';
+
+/* ---------- helpers ---------- */
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function money(n) {
+  const v = Number(n) || 0;
+  return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+}
+function uid(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function activeStaff() { return state.staff.filter(s => s.active); }
+function staffById(id) { return state.staff.find(s => s.staffId === id); }
+function allRecords() {
+  return [
+    ...state.checker.map(r => ({ ...r, type: 'Checker' })),
+    ...state.supervisor.map(r => ({ ...r, type: 'Supervisor' }))
+  ];
+}
+function monthKey(dateStr) { return dateStr ? dateStr.slice(0, 7) : ''; }
+function yearKey(dateStr) { return dateStr ? dateStr.slice(0, 4) : ''; }
+
+/* ---------- auth ---------- */
+function handleLogin(e) {
+  e.preventDefault();
+  const pw = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  if (pw === state.settings.password) {
+    state.auth = true; saveState();
+    err.textContent = '';
+    document.getElementById('login-password').value = '';
+    showApp();
+  } else {
+    err.textContent = 'Incorrect password. Please try again.';
+  }
+}
+function handleLogout() {
+  if (!confirm('Log out of the portal?')) return;
+  state.auth = false; saveState();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  switchTab('dashboard');
+}
+
+/* ---------- tabs ---------- */
+const TAB_LABELS = { dashboard: 'Dashboard', staff: 'Staff Management', checker: 'Paper Checker Records', supervisor: 'Supervisor Records', reports: 'Reports', settings: 'Settings' };
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-label').textContent = TAB_LABELS[tab] || '';
+  document.querySelectorAll('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  render();
+  document.getElementById('content').scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+function render() {
+  const c = document.getElementById('content');
+  if (currentTab === 'dashboard') c.innerHTML = renderDashboard();
+  else if (currentTab === 'staff') c.innerHTML = renderStaff();
+  else if (currentTab === 'checker') c.innerHTML = renderChecker();
+  else if (currentTab === 'supervisor') c.innerHTML = renderSupervisor();
+  else if (currentTab === 'reports') c.innerHTML = renderReports();
+  else if (currentTab === 'settings') c.innerHTML = renderSettings();
+}
+
+/* ---------- dashboard ---------- */
+function renderDashboard() {
+  const totalStaff = state.staff.length;
+  const activeCount = activeStaff().length;
+  const totalPapers = state.checker.reduce((s, r) => s + Number(r.numPapers || 0), 0);
+  const all = allRecords();
+  const totalPayment = all.reduce((s, r) => s + Number(r.total || 0), 0);
+  const nowMonth = todayStr().slice(0, 7);
+  const monthPayment = all.filter(r => monthKey(r.date) === nowMonth).reduce((s, r) => s + Number(r.total || 0), 0);
+  const pending = all.filter(r => r.status === 'Pending').reduce((s, r) => s + Number(r.total || 0), 0);
+
+  const recent = all.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 5);
+
+  return `
+    <div class="section-head"><div><h2>Dashboard</h2><p>Overview of staff and payments</p></div></div>
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="label">Total Staff</div><div class="value num">${totalStaff}</div><div class="helper">${activeCount} active</div></div>
+      <div class="stat-tile"><div class="label">Papers Checked</div><div class="value num">${totalPapers}</div></div>
+      <div class="stat-tile accent"><div class="label">Total Payment</div><div class="value num">${money(totalPayment)}</div></div>
+      <div class="stat-tile"><div class="label">This Month</div><div class="value num">${money(monthPayment)}</div></div>
+      <div class="stat-tile warning" style="grid-column: 1 / -1;"><div class="label">Pending Payment</div><div class="value num">${money(pending)}</div></div>
+    </div>
+    <div class="card">
+      <h3>Recent Activity</h3>
+      ${recent.length ? `
+        <div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            ${recent.map(r => `<tr>
+              <td class="num">${escapeHtml(r.date)}</td>
+              <td>${escapeHtml(r.staffName)}</td>
+              <td>${r.type}</td>
+              <td class="num">${money(r.total)}</td>
+              <td>${statusPill(r.status)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+      ` : emptyState('No records yet. Add a Paper Checker or Supervisor record to see activity here.')}
+    </div>
+  `;
+}
+function statusPill(status) {
+  const cls = status === 'Paid' ? 'success' : 'warning';
+  return `<span class="pill ${cls}">${status}</span>`;
+}
+
+/* ---------- staff ---------- */
+function renderStaff() {
+  const rows = state.staff;
+  return `
+    <div class="section-head">
+      <div><h2>Staff Management</h2><p>${rows.length} staff member${rows.length === 1 ? '' : 's'}</p></div>
+      <button class="btn btn-primary btn-sm" onclick="openStaffModal()">+ Add Staff</button>
+    </div>
+    ${rows.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${rows.map(s => `<tr>
+            <td class="num">${escapeHtml(s.staffId)}</td>
+            <td>${escapeHtml(s.name)}</td>
+            <td>${escapeHtml(s.role)}</td>
+            <td><button class="pill pill-btn ${s.active ? 'success' : 'danger'}" onclick="toggleStaffActive('${s.staffId}')">${s.active ? 'Active' : 'Inactive'}</button></td>
+            <td class="row-actions">
+              <button class="btn btn-ghost btn-sm" onclick="openStaffModal('${s.staffId}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.staffId}')">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    ` : emptyState('No staff added yet. Tap "Add Staff" to get started.')}
+  `;
+}
+function openStaffModal(staffId) {
+  const editing = staffId ? staffById(staffId) : null;
+  showModal(`
+    <h3>${editing ? 'Edit Staff' : 'Add Staff'}</h3>
+    <form onsubmit="submitStaff(event, ${editing ? `'${staffId}'` : 'null'})">
+      <div class="field"><label>Staff ID</label><input type="text" id="f-staffId" value="${editing ? escapeHtml(editing.staffId) : ''}" ${editing ? 'readonly' : ''} required placeholder="e.g. S003"></div>
+      <div class="field"><label>Staff Name</label><input type="text" id="f-name" value="${editing ? escapeHtml(editing.name) : ''}" required placeholder="Full name"></div>
+      <div class="field"><label>Role</label>
+        <select id="f-role">
+          ${['Paper Checker', 'Supervisor', 'Both', 'Other'].map(r => `<option ${editing && editing.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="f-active">
+          <option value="true" ${!editing || editing.active ? 'selected' : ''}>Active</option>
+          <option value="false" ${editing && !editing.active ? 'selected' : ''}>Inactive</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Staff'}</button>
+      </div>
+    </form>
+  `);
+}
+function submitStaff(e, editingId) {
+  e.preventDefault();
+  const staffId = document.getElementById('f-staffId').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  const role = document.getElementById('f-role').value;
+  const active = document.getElementById('f-active').value === 'true';
+  if (!staffId || !name) return;
+  if (!editingId && state.staff.some(s => s.staffId.toLowerCase() === staffId.toLowerCase())) {
+    showToast('That Staff ID already exists.'); return;
+  }
+  if (editingId) {
+    const s = staffById(editingId);
+    s.name = name; s.role = role; s.active = active;
+    syncStaffNameInRecords(editingId, name);
+    showToast('Staff updated.');
+  } else {
+    state.staff.push({ staffId, name, role, active });
+    showToast('Staff added.');
+  }
+  saveState(); closeModal(); render();
+}
+function syncStaffNameInRecords(staffId, name) {
+  state.checker.forEach(r => { if (r.staffId === staffId) r.staffName = name; });
+  state.supervisor.forEach(r => { if (r.staffId === staffId) r.staffName = name; });
+}
+function toggleStaffActive(staffId) {
+  const s = staffById(staffId); s.active = !s.active; saveState(); render();
+}
+function deleteStaff(staffId) {
+  const used = state.checker.some(r => r.staffId === staffId) || state.supervisor.some(r => r.staffId === staffId);
+  const msg = used
+    ? 'This staff member has payment records. Delete anyway? Their existing records will be kept but no longer linked to an active staff profile.'
+    : 'Delete this staff member?';
+  if (!confirm(msg)) return;
+  state.staff = state.staff.filter(s => s.staffId !== staffId);
+  saveState(); render();
+}
+
+/* ---------- record modal builder (shared shape for checker/supervisor) ---------- */
+function staffOptions(selectedId) {
+  if (!state.staff.length) return '<option value="">No staff added yet</option>';
+  return state.staff.map(s => `<option value="${escapeHtml(s.staffId)}" ${s.staffId === selectedId ? 'selected' : ''}>${escapeHtml(s.staffId)} — ${escapeHtml(s.name)}${s.active ? '' : ' (Inactive)'}</option>`).join('');
+}
+
+/* ---------- checker ---------- */
+function renderChecker() {
+  const rows = [...state.checker].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return `
+    <div class="section-head">
+      <div><h2>Paper Checker Records</h2><p>${rows.length} record${rows.length === 1 ? '' : 's'}</p></div>
+      <button class="btn btn-primary btn-sm" onclick="openCheckerModal()" ${state.staff.length ? '' : 'disabled title="Add staff first"'}>+ Add Record</button>
+    </div>
+    ${rows.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Staff</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Papers</th><th>Rate</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${rows.map(r => `<tr>
+            <td class="num">${escapeHtml(r.date)}</td>
+            <td>${escapeHtml(r.staffName)}</td>
+            <td>${escapeHtml(r.exam)}</td>
+            <td>${escapeHtml(r.subject)}</td>
+            <td class="num">${escapeHtml(r.marks)}</td>
+            <td class="num">${escapeHtml(r.numPapers)}</td>
+            <td class="num">${money(r.rate)}</td>
+            <td class="num">${money(r.total)}</td>
+            <td><button class="pill pill-btn ${r.status === 'Paid' ? 'success' : 'warning'}" onclick="toggleStatus('checker','${r.id}')">${r.status}</button></td>
+            <td class="row-actions">
+              <button class="btn btn-ghost btn-sm" onclick="openCheckerModal('${r.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteRecord('checker','${r.id}')">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    ` : emptyState('No paper checking records yet.')}
+  `;
+}
+function openCheckerModal(id) {
+  const editing = id ? state.checker.find(r => r.id === id) : null;
+  const defaultRate = state.settings.checkerRate;
+  showModal(`
+    <h3>${editing ? 'Edit Paper Checker Record' : 'Add Paper Checker Record'}</h3>
+    <form onsubmit="submitChecker(event, ${editing ? `'${id}'` : 'null'})">
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="ck-date" value="${editing ? editing.date : todayStr()}" required></div>
+        <div class="field"><label>Staff</label><select id="ck-staff" required onchange="recalcCheckerTotal()">${staffOptions(editing ? editing.staffId : '')}</select></div>
+      </div>
+      <div class="field"><label>Test / Exam Name</label><input type="text" id="ck-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required placeholder="e.g. Test Series - Mock 4"></div>
+      <div class="field"><label>Subject</label><input type="text" id="ck-subject" value="${editing ? escapeHtml(editing.subject) : ''}" required placeholder="e.g. Physics"></div>
+      <div class="form-row">
+        <div class="field"><label>Paper Marks (out of)</label><input type="number" id="ck-marks" value="${editing ? editing.marks : ''}" min="0" required></div>
+        <div class="field"><label>No. of Papers Checked</label><input type="number" id="ck-numPapers" value="${editing ? editing.numPapers : ''}" min="0" required oninput="recalcCheckerTotal()"></div>
+      </div>
+      <div class="field"><label>Rate per Paper</label><input type="number" id="ck-rate" value="${editing ? editing.rate : defaultRate}" min="0" step="0.01" required oninput="recalcCheckerTotal()"></div>
+      <div class="total-preview"><span class="label">Total Payment</span><span class="value num" id="ck-total-preview">${money(editing ? editing.total : (defaultRate || 0))}</span></div>
+      <div class="field" style="margin-top:14px;"><label>Payment Status</label>
+        <select id="ck-status">
+          <option ${!editing || editing.status === 'Pending' ? 'selected' : ''}>Pending</option>
+          <option ${editing && editing.status === 'Paid' ? 'selected' : ''}>Paid</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Record'}</button>
+      </div>
+    </form>
+  `);
+  recalcCheckerTotal();
+}
+function recalcCheckerTotal() {
+  const n = Number(document.getElementById('ck-numPapers')?.value || 0);
+  const r = Number(document.getElementById('ck-rate')?.value || 0);
+  const el = document.getElementById('ck-total-preview');
+  if (el) el.textContent = money(n * r);
+}
+function submitChecker(e, editingId) {
+  e.preventDefault();
+  const staffId = document.getElementById('ck-staff').value;
+  const staff = staffById(staffId);
+  if (!staff) { showToast('Please add a staff member first.'); return; }
+  const numPapers = Number(document.getElementById('ck-numPapers').value) || 0;
+  const rate = Number(document.getElementById('ck-rate').value) || 0;
+  const rec = {
+    date: document.getElementById('ck-date').value,
+    staffId, staffName: staff.name,
+    exam: document.getElementById('ck-exam').value.trim(),
+    subject: document.getElementById('ck-subject').value.trim(),
+    marks: Number(document.getElementById('ck-marks').value) || 0,
+    numPapers, rate, total: numPapers * rate,
+    status: document.getElementById('ck-status').value
+  };
+  if (editingId) {
+    Object.assign(state.checker.find(r => r.id === editingId), rec);
+    showToast('Record updated.');
+  } else {
+    state.checker.push({ id: uid('c'), ...rec });
+    showToast('Record added.');
+  }
+  saveState(); closeModal(); render();
+}
+
+/* ---------- supervisor ---------- */
+function renderSupervisor() {
+  const rows = [...state.supervisor].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return `
+    <div class="section-head">
+      <div><h2>Supervisor Records</h2><p>${rows.length} record${rows.length === 1 ? '' : 's'}</p></div>
+      <button class="btn btn-primary btn-sm" onclick="openSupervisorModal()" ${state.staff.length ? '' : 'disabled title="Add staff first"'}>+ Add Record</button>
+    </div>
+    ${rows.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Staff</th><th>Exam</th><th>Details</th><th>Qty</th><th>Rate</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${rows.map(r => `<tr>
+            <td class="num">${escapeHtml(r.date)}</td>
+            <td>${escapeHtml(r.staffName)}</td>
+            <td>${escapeHtml(r.exam)}</td>
+            <td>${escapeHtml(r.detail)}</td>
+            <td class="num">${escapeHtml(r.qty)}</td>
+            <td class="num">${money(r.rate)}</td>
+            <td class="num">${money(r.total)}</td>
+            <td><button class="pill pill-btn ${r.status === 'Paid' ? 'success' : 'warning'}" onclick="toggleStatus('supervisor','${r.id}')">${r.status}</button></td>
+            <td class="row-actions">
+              <button class="btn btn-ghost btn-sm" onclick="openSupervisorModal('${r.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteRecord('supervisor','${r.id}')">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    ` : emptyState('No supervisor records yet.')}
+  `;
+}
+function openSupervisorModal(id) {
+  const editing = id ? state.supervisor.find(r => r.id === id) : null;
+  const defaultRate = state.settings.supervisorRate;
+  showModal(`
+    <h3>${editing ? 'Edit Supervisor Record' : 'Add Supervisor Record'}</h3>
+    <form onsubmit="submitSupervisor(event, ${editing ? `'${id}'` : 'null'})">
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="sv-date" value="${editing ? editing.date : todayStr()}" required></div>
+        <div class="field"><label>Staff</label><select id="sv-staff" required>${staffOptions(editing ? editing.staffId : '')}</select></div>
+      </div>
+      <div class="field"><label>Test / Exam Name</label><input type="text" id="sv-exam" value="${editing ? escapeHtml(editing.exam) : ''}" required placeholder="e.g. Test Series - Mock 4"></div>
+      <div class="field"><label>Supervision Details</label><input type="text" id="sv-detail" value="${editing ? escapeHtml(editing.detail) : ''}" placeholder="e.g. Hall A, morning session"></div>
+      <div class="form-row">
+        <div class="field"><label>Quantity (sessions / hours)</label><input type="number" id="sv-qty" value="${editing ? editing.qty : 1}" min="0" step="0.5" required oninput="recalcSupervisorTotal()"></div>
+        <div class="field"><label>Rate</label><input type="number" id="sv-rate" value="${editing ? editing.rate : defaultRate}" min="0" step="0.01" required oninput="recalcSupervisorTotal()"></div>
+      </div>
+      <div class="total-preview"><span class="label">Total Payment</span><span class="value num" id="sv-total-preview">${money(editing ? editing.total : defaultRate)}</span></div>
+      <div class="field" style="margin-top:14px;"><label>Payment Status</label>
+        <select id="sv-status">
+          <option ${!editing || editing.status === 'Pending' ? 'selected' : ''}>Pending</option>
+          <option ${editing && editing.status === 'Paid' ? 'selected' : ''}>Paid</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">${editing ? 'Save Changes' : 'Add Record'}</button>
+      </div>
+    </form>
+  `);
+  recalcSupervisorTotal();
+}
+function recalcSupervisorTotal() {
+  const q = Number(document.getElementById('sv-qty')?.value || 0);
+  const r = Number(document.getElementById('sv-rate')?.value || 0);
+  const el = document.getElementById('sv-total-preview');
+  if (el) el.textContent = money(q * r);
+}
+function submitSupervisor(e, editingId) {
+  e.preventDefault();
+  const staffId = document.getElementById('sv-staff').value;
+  const staff = staffById(staffId);
+  if (!staff) { showToast('Please add a staff member first.'); return; }
+  const qty = Number(document.getElementById('sv-qty').value) || 0;
+  const rate = Number(document.getElementById('sv-rate').value) || 0;
+  const rec = {
+    date: document.getElementById('sv-date').value,
+    staffId, staffName: staff.name,
+    exam: document.getElementById('sv-exam').value.trim(),
+    detail: document.getElementById('sv-detail').value.trim(),
+    qty, rate, total: qty * rate,
+    status: document.getElementById('sv-status').value
+  };
+  if (editingId) {
+    Object.assign(state.supervisor.find(r => r.id === editingId), rec);
+    showToast('Record updated.');
+  } else {
+    state.supervisor.push({ id: uid('v'), ...rec });
+    showToast('Record added.');
+  }
+  saveState(); closeModal(); render();
+}
+
+/* ---------- shared record ops ---------- */
+function toggleStatus(kind, id) {
+  const list = kind === 'checker' ? state.checker : state.supervisor;
+  const r = list.find(x => x.id === id);
+  r.status = r.status === 'Paid' ? 'Pending' : 'Paid';
+  saveState(); render();
+}
+function deleteRecord(kind, id) {
+  if (!confirm('Delete this record?')) return;
+  if (kind === 'checker') state.checker = state.checker.filter(r => r.id !== id);
+  else state.supervisor = state.supervisor.filter(r => r.id !== id);
+  saveState(); render();
+}
+
+/* ---------- reports ---------- */
+let reportMode = 'staff';
+function renderReports() {
+  const staffOpts = state.staff.map(s => `<option value="${escapeHtml(s.staffId)}">${escapeHtml(s.staffId)} — ${escapeHtml(s.name)}</option>`).join('');
+  const years = [...new Set(allRecords().map(r => yearKey(r.date)).filter(Boolean))].sort().reverse();
+  const yearOpts = (years.length ? years : [String(new Date().getFullYear())]).map(y => `<option>${y}</option>`).join('');
+
+  return `
+    <div class="section-head"><div><h2>Reports</h2><p>Filter payment records</p></div></div>
+    <div class="segmented">
+      ${['staff','date','month','year'].map(m => `<button class="${reportMode === m ? 'active' : ''}" onclick="setReportMode('${m}')">${m[0].toUpperCase()+m.slice(1)}-wise</button>`).join('')}
+    </div>
+    <div class="filter-bar">
+      ${reportMode === 'staff' ? `<select id="rep-staff" onchange="renderReportResults()"><option value="">Select staff…</option>${staffOpts}</select>` : ''}
+      ${reportMode === 'date' ? `<input type="date" id="rep-date" value="${todayStr()}" onchange="renderReportResults()">` : ''}
+      ${reportMode === 'month' ? `<input type="month" id="rep-month" value="${todayStr().slice(0,7)}" onchange="renderReportResults()">` : ''}
+      ${reportMode === 'year' ? `<select id="rep-year" onchange="renderReportResults()">${yearOpts}</select>` : ''}
+    </div>
+    <div id="report-results"></div>
+  `;
+}
+function setReportMode(m) { reportMode = m; render(); setTimeout(renderReportResults, 0); }
+function renderReportResults() {
+  const el = document.getElementById('report-results');
+  if (!el) return;
+  let rows = allRecords();
+  let title = '';
+  if (reportMode === 'staff') {
+    const id = document.getElementById('rep-staff')?.value;
+    if (!id) { el.innerHTML = emptyState('Choose a staff member to see their records.'); return; }
+    rows = rows.filter(r => r.staffId === id);
+    title = staffById(id) ? staffById(id).name : id;
+  } else if (reportMode === 'date') {
+    const d = document.getElementById('rep-date')?.value;
+    rows = rows.filter(r => r.date === d); title = d;
+  } else if (reportMode === 'month') {
+    const m = document.getElementById('rep-month')?.value;
+    rows = rows.filter(r => monthKey(r.date) === m); title = m;
+  } else if (reportMode === 'year') {
+    const y = document.getElementById('rep-year')?.value;
+    rows = rows.filter(r => yearKey(r.date) === y); title = y;
+  }
+  rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const total = rows.reduce((s, r) => s + Number(r.total || 0), 0);
+  const paid = rows.filter(r => r.status === 'Paid').reduce((s, r) => s + Number(r.total || 0), 0);
+  const pending = total - paid;
+
+  el.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-tile accent"><div class="label">Total</div><div class="value num">${money(total)}</div></div>
+      <div class="stat-tile"><div class="label">Paid</div><div class="value num">${money(paid)}</div></div>
+      <div class="stat-tile warning" style="grid-column:1/-1"><div class="label">Pending</div><div class="value num">${money(pending)}</div></div>
+    </div>
+    ${rows.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Exam</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          ${rows.map(r => `<tr>
+            <td class="num">${escapeHtml(r.date)}</td>
+            <td>${escapeHtml(r.staffName)}</td>
+            <td>${r.type}</td>
+            <td>${escapeHtml(r.exam)}</td>
+            <td class="num">${money(r.total)}</td>
+            <td>${statusPill(r.status)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    ` : emptyState('No records found for this filter.')}
+  `;
+}
+
+/* ---------- settings ---------- */
+function renderSettings() {
+  return `
+    <div class="section-head"><div><h2>Settings</h2><p>Default rates and admin access</p></div></div>
+    <div class="card">
+      <h3>Default Payment Rates</h3>
+      <form onsubmit="saveRates(event)">
+        <div class="field"><label>Default Rate per Paper (Checker)</label><input type="number" id="set-checkerRate" value="${state.settings.checkerRate}" min="0" step="0.01" required></div>
+        <div class="field"><label>Default Rate (Supervisor)</label><input type="number" id="set-supervisorRate" value="${state.settings.supervisorRate}" min="0" step="0.01" required></div>
+        <p class="helper" style="margin-bottom:12px;">These amounts auto-fill new records. Each record's rate can still be changed individually.</p>
+        <button type="submit" class="btn btn-primary">Save Rates</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Change Admin Password</h3>
+      <form onsubmit="changePassword(event)">
+        <div class="field"><label>Current Password</label><input type="password" id="set-currentPw" required></div>
+        <div class="field"><label>New Password</label><input type="password" id="set-newPw" required minlength="4"></div>
+        <button type="submit" class="btn btn-primary">Update Password</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Reset Data</h3>
+      <p class="helper" style="margin-bottom:12px;">Permanently erase all staff and payment records on this device. This cannot be undone.</p>
+      <button class="btn btn-danger btn-block" onclick="resetAllData()">Erase All Data</button>
+    </div>
+  `;
+}
+function saveRates(e) {
+  e.preventDefault();
+  state.settings.checkerRate = Number(document.getElementById('set-checkerRate').value) || 0;
+  state.settings.supervisorRate = Number(document.getElementById('set-supervisorRate').value) || 0;
+  saveState(); showToast('Default rates saved.');
+}
+function changePassword(e) {
+  e.preventDefault();
+  const cur = document.getElementById('set-currentPw').value;
+  const next = document.getElementById('set-newPw').value;
+  if (cur !== state.settings.password) { showToast('Current password is incorrect.'); return; }
+  state.settings.password = next; saveState();
+  document.getElementById('set-currentPw').value = ''; document.getElementById('set-newPw').value = '';
+  showToast('Password updated.');
+}
+function resetAllData() {
+  if (!confirm('This will delete ALL staff and payment records on this device. Continue?')) return;
+  if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
+  const pw = state.settings.password;
+  state = defaultState();
+  state.staff = []; state.checker = []; state.supervisor = [];
+  state.settings.password = pw;
+  saveState(); render(); showToast('All data erased.');
+}
+
+/* ---------- modal ---------- */
+function showModal(html) {
+  document.getElementById('modal-root').innerHTML = `<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+function emptyState(msg) {
+  return `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg><div>${escapeHtml(msg)}</div></div>`;
+}
+
+/* ---------- boot ---------- */
+(function init() {
+  if (state.auth) showApp();
+})();
+</script>
