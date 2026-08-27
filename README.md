@@ -5,7 +5,7 @@ work (Paper Checkers, Supervisors, Open Day staff), route it through a
 confirm → approve → pay workflow, and generate PDF payment statements for Accounts.
 
 Built phase by phase per the project spec (see `## Development Phases` below).
-**Phases 1 (Foundation) through 5 (Dashboard) are complete**; later phases are not
+**Phases 1 (Foundation) through 6 (PDF reports) are complete**; later phases are not
 built yet.
 
 ## Stack
@@ -220,10 +220,29 @@ and you (Admin) approve it and mark it paid from the same page.
   are plain URL query params (`?branch=&module=&from=&to=`) via a GET form, so the page
   works without client-side JS and the filtered view is a shareable/bookmarkable link.
 
-Reports and Audit History are not built yet.
+**Phase 6 — PDF reports**
 
-Sidebar links to modules from later phases (Reports, Audit History) are present but
-those routes don't exist yet — that's expected until their phases are built.
+- `0006_profiles_staff_branch_read.sql` — fixes a real RLS gap found while building
+  this phase: `profiles` only had "read your own row" and "admin reads all rows"
+  policies, so a non-admin Staff viewer got back only their own row from the
+  `select id, full_name from profiles` lookups every module's list/detail pages already
+  did — every other person's name silently rendered as "—". Added
+  `private.is_staff_for_branch(branch_id)` as a third select policy, matching how that
+  helper already scopes every module table.
+- `lib/reports/types.ts` / `lib/reports/query.ts` — filter parsing and a shared
+  `fetchReportRows()` that runs all three module queries with every filter pushed down
+  to Postgres (branch, module, examiner/staff, subject, batch, confirmation status,
+  payment status, date range), then combines and resolves display names. Reused by
+  both the page and its PDF export so they can never drift apart.
+- `/reports` (Staff/Coordinator + Admin): the full filter bar as plain GET query
+  params, a combined table across all three modules, and a "Download PDF" link.
+- `app/api/reports/pdf/route.ts` — same filters, same `fetchReportRows()`, rendered
+  through `lib/pdf/build-pdf.ts` into a downloadable PDF.
+
+Audit History is not built yet.
+
+Sidebar links to modules from later phases (Audit History) are present but that route
+doesn't exist yet — that's expected until its phase is built.
 
 ## Development Phases
 
@@ -237,7 +256,7 @@ those routes don't exist yet — that's expected until their phases are built.
    - 4b. Open Day module end-to-end. ✅
    - 4c. Cross-module Confirmation Queue + Payment Management pages. ✅
 5. **Dashboard** — cards + filters, wired to real aggregate queries. ✅
-6. **PDF reports** — filter-driven generation.
+6. **PDF reports** — filter-driven generation. ✅
 7. **Audit history** — triggers/logging wired into every mutating action, admin viewer
    page.
 8. **RLS hardening + polish** — write and test every RLS policy, responsive pass, error
