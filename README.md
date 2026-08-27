@@ -5,8 +5,8 @@ work (Paper Checkers, Supervisors, Open Day staff), route it through a
 confirm → approve → pay workflow, and generate PDF payment statements for Accounts.
 
 Built phase by phase per the project spec (see `## Development Phases` below).
-**Phases 1 (Foundation) through 4c (Confirmation Queue + Payment Management) are
-complete**; later phases are not built yet.
+**Phases 1 (Foundation) through 5 (Dashboard) are complete**; later phases are not
+built yet.
 
 ## Stack
 
@@ -210,7 +210,17 @@ and you (Admin) approve it and mark it paid from the same page.
   and streams a payment slip PDF for one staff member's approved-and-unpaid records
   across all three modules.
 
-Dashboard, Reports, and Audit History are not built yet.
+**Phase 5 — Dashboard**
+
+- `/dashboard` now shows four aggregate cards — Total records, Pending confirmations,
+  Total payments due (confirmed but not yet paid: `pending_admin_approval` +
+  `approved`), and Payments made (`paid`) — computed across all three modules and
+  filterable by branch (admin only — Staff/Paper Checker/Supervisor are already scoped
+  by RLS to their own branch or their own submissions), module, and date range. Filters
+  are plain URL query params (`?branch=&module=&from=&to=`) via a GET form, so the page
+  works without client-side JS and the filtered view is a shareable/bookmarkable link.
+
+Reports and Audit History are not built yet.
 
 Sidebar links to modules from later phases (Reports, Audit History) are present but
 those routes don't exist yet — that's expected until their phases are built.
@@ -226,7 +236,7 @@ those routes don't exist yet — that's expected until their phases are built.
    - 4a. Supervisor module end-to-end. ✅
    - 4b. Open Day module end-to-end. ✅
    - 4c. Cross-module Confirmation Queue + Payment Management pages. ✅
-5. **Dashboard** — cards + filters, wired to real aggregate queries.
+5. **Dashboard** — cards + filters, wired to real aggregate queries. ✅
 6. **PDF reports** — filter-driven generation.
 7. **Audit history** — triggers/logging wired into every mutating action, admin viewer
    page.
