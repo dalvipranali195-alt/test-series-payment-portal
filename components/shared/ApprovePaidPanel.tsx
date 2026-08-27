@@ -1,24 +1,23 @@
 'use client';
 
 import { useActionState } from 'react';
-import {
-  approvePaperCheckerRecord,
-  markPaperCheckerRecordPaid,
-  type FormActionState,
-} from '@/lib/paper-checker/actions';
 import type { PaymentStatus } from '@/types/database.types';
 
-const initialState: FormActionState = { error: null };
+export interface ActionState {
+  error: string | null;
+}
+
+const initialState: ActionState = { error: null };
 
 export default function ApprovePaidPanel({
-  id,
   paymentStatus,
+  approveAction,
+  markPaidAction,
 }: {
-  id: string;
   paymentStatus: PaymentStatus;
+  approveAction: (state: ActionState, formData: FormData) => Promise<ActionState>;
+  markPaidAction: (state: ActionState, formData: FormData) => Promise<ActionState>;
 }) {
-  const approveAction = approvePaperCheckerRecord.bind(null, id);
-  const markPaidAction = markPaperCheckerRecordPaid.bind(null, id);
   const [approveState, approveFormAction, approvePending] = useActionState(approveAction, initialState);
   const [paidState, paidFormAction, paidPending] = useActionState(markPaidAction, initialState);
 

@@ -5,8 +5,8 @@ work (Paper Checkers, Supervisors, Open Day staff), route it through a
 confirm → approve → pay workflow, and generate PDF payment statements for Accounts.
 
 Built phase by phase per the project spec (see `## Development Phases` below).
-**Phases 1 (Foundation), 2 (Lookup data), and 3 (Paper Checker) are complete**; later
-phases are not built yet.
+**Phases 1 (Foundation), 2 (Lookup data), 3 (Paper Checker), and 4a (Supervisor) are
+complete**; later phases are not built yet.
 
 ## Stack
 
@@ -40,6 +40,9 @@ Open the Supabase SQL editor (or use the Supabase CLI) and run every file in
   `BEFORE UPDATE` trigger that enforces the hard rules (no self-confirmation, only an
   admin can move `payment_status` to `approved`/`paid`, a non-admin update can't touch
   any field besides the confirm/reject ones) as defense in depth beyond RLS.
+- `0004_supervisor.sql` — creates `supervisor_records`: the same confirm → approve →
+  pay shape as `paper_checker_records`, minus the answer-key split (one flat `rate`
+  snapshot × `student_count`).
 
 If you have the Supabase CLI linked to the project:
 
@@ -78,18 +81,21 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to `/login`.
 
-### 5. Try the Paper Checker workflow
+### 5. Try the Paper Checker / Supervisor workflow
 
 To exercise the full confirm → approve → pay flow you need, as admin:
 
 1. A branch, a batch in that branch, and a subject (Admin → Branches/Batches/Subjects).
-2. A `paper_checker` module payment rate for that subject (Admin → Payment Rates).
-3. Two more invited users (Admin → Staff): one set to role `paper_checker` with that
-   branch assigned, one set to role `staff` with the same branch assigned.
+2. A payment rate for that module + subject (Admin → Payment Rates) — `paper_checker`
+   rates split into per-paper/answer-key price, `supervisor` and `open_day` rates are a
+   single flat rate per student.
+3. Two more invited users (Admin → Staff): one set to role `paper_checker` or
+   `supervisor` with that branch assigned, one set to role `staff` with the same branch
+   assigned.
 
-Then: the Paper Checker submits a record at `/paper-checker/new`, the Staff user
-confirms or rejects it from `/paper-checker/[id]`, and you (Admin) approve it and mark
-it paid from the same page.
+Then: the Paper Checker/Supervisor submits a record at `/paper-checker/new` or
+`/supervisor/new`, the Staff user confirms or rejects it from the record's detail page,
+and you (Admin) approve it and mark it paid from the same page.
 
 ## What's built
 
@@ -147,15 +153,35 @@ it paid from the same page.
   `/paper-checker/new` (submission form with a live total preview), and
   `/paper-checker/[id]` (detail page with confirm/reject for Staff/Admin,
   approve/mark-paid for Admin, and an admin-only edit form).
+- `components/shared/` — `StatusBadge`, `RecordsTable`, `ConfirmRejectPanel`, and
+  `ApprovePaidPanel` were lifted out of `components/paper-checker/` into generic,
+  prop-driven versions once a second module needed the identical confirm → approve →
+  pay UI. `ConfirmRejectPanel`/`ApprovePaidPanel` take the module's already-bound server
+  actions as props; `RecordsTable` takes a generic `RecordRow` shape plus a couple of
+  label props (`submitterLabel`, `quantityLabel`, `detailBasePath`). Every module's
+  edit form stays module-specific (the fields genuinely differ) rather than being
+  forced into a shared shape.
 
-The spec's cross-module `/confirmation-queue` and `/payment-management` pages are
-deferred to Phase 4 — with only one module built so far there's nothing yet for them to
-aggregate across; confirm/reject/approve/paid all work today from the Paper Checker
-list and detail pages.
+**Phase 4a — Supervisor module**
 
-Sidebar links to modules from later phases (Supervisor, Open Day, Payment Management,
-Reports, Audit History) are present but those routes don't exist yet — that's expected
-until their phases are built.
+- `supervisor_records`, RLS, and its transition trigger (see
+  `supabase/migrations/0004_supervisor.sql`) — the same confirm → approve → pay shape
+  as `paper_checker_records`, minus the answer-key split: one flat `rate` snapshot ×
+  `student_count`.
+- `/supervisor` (role-scoped list, reusing `components/shared/RecordsTable`),
+  `/supervisor/new` (submission form, role `supervisor` only), and `/supervisor/[id]`
+  (detail page reusing the shared confirm/reject and approve/paid panels, plus an
+  admin-only edit form).
+- Payment Rates already supported a `supervisor` module option (Phase 3 built the admin
+  form generically); this phase is what actually reads and snapshots that rate.
+
+Open Day (Phase 4b), the cross-module `/confirmation-queue` and `/payment-management`
+pages (Phase 4c — needed at least two modules to aggregate across, which now exist),
+Dashboard, Reports, and Audit History are not built yet.
+
+Sidebar links to modules from later phases (Open Day, Payment Management, Reports,
+Audit History) are present but those routes don't exist yet — that's expected until
+their phases are built.
 
 ## Development Phases
 
@@ -165,6 +191,9 @@ until their phases are built.
 3. **Paper Checker module end-to-end** — form → submit → list → detail → staff
    confirm/reject → admin approve → mark paid. ✅
 4. **Supervisor + Open Day modules** — same pattern, reusing components.
+   - 4a. Supervisor module end-to-end. ✅
+   - 4b. Open Day module end-to-end.
+   - 4c. Cross-module Confirmation Queue + Payment Management pages.
 5. **Dashboard** — cards + filters, wired to real aggregate queries.
 6. **PDF reports** — filter-driven generation.
 7. **Audit history** — triggers/logging wired into every mutating action, admin viewer

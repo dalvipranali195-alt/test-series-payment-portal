@@ -1,18 +1,21 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import {
-  confirmPaperCheckerRecord,
-  rejectPaperCheckerRecord,
-  type FormActionState,
-} from '@/lib/paper-checker/actions';
 
-const initialState: FormActionState = { error: null };
+export interface ActionState {
+  error: string | null;
+}
 
-export default function ConfirmRejectPanel({ id }: { id: string }) {
+const initialState: ActionState = { error: null };
+
+export default function ConfirmRejectPanel({
+  confirmAction,
+  rejectAction,
+}: {
+  confirmAction: (state: ActionState, formData: FormData) => Promise<ActionState>;
+  rejectAction: (state: ActionState, formData: FormData) => Promise<ActionState>;
+}) {
   const [rejecting, setRejecting] = useState(false);
-  const confirmAction = confirmPaperCheckerRecord.bind(null, id);
-  const rejectAction = rejectPaperCheckerRecord.bind(null, id);
   const [confirmState, confirmFormAction, confirmPending] = useActionState(confirmAction, initialState);
   const [rejectState, rejectFormAction, rejectPending] = useActionState(rejectAction, initialState);
 

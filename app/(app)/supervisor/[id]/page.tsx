@@ -4,13 +4,13 @@ import { createClient } from '@/lib/supabase/server';
 import { ConfirmationBadge, PaymentBadge } from '@/components/shared/StatusBadge';
 import ConfirmRejectPanel from '@/components/shared/ConfirmRejectPanel';
 import ApprovePaidPanel from '@/components/shared/ApprovePaidPanel';
-import EditRecordForm from '@/components/paper-checker/EditRecordForm';
+import EditRecordForm from '@/components/supervisor/EditRecordForm';
 import {
-  confirmPaperCheckerRecord,
-  rejectPaperCheckerRecord,
-  approvePaperCheckerRecord,
-  markPaperCheckerRecordPaid,
-} from '@/lib/paper-checker/actions';
+  confirmSupervisorRecord,
+  rejectSupervisorRecord,
+  approveSupervisorRecord,
+  markSupervisorRecordPaid,
+} from '@/lib/supervisor/actions';
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -21,7 +21,7 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default async function PaperCheckerDetailPage({
+export default async function SupervisorDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -33,19 +33,19 @@ export default async function PaperCheckerDetailPage({
   const supabase = await createClient();
 
   const { data: record } = await supabase
-    .from('paper_checker_records')
+    .from('supervisor_records')
     .select('*')
     .eq('id', id)
     .maybeSingle();
 
   if (!record) notFound();
 
-  const [{ data: subject }, { data: batch }, { data: branch }, { data: checker }, { data: confirmedBy }, { data: approvedBy }] =
+  const [{ data: subject }, { data: batch }, { data: branch }, { data: supervisor }, { data: confirmedBy }, { data: approvedBy }] =
     await Promise.all([
       supabase.from('subjects').select('name').eq('id', record.subject_id).single(),
       supabase.from('batches').select('name').eq('id', record.batch_id).single(),
       supabase.from('branches').select('name').eq('id', record.branch_id).single(),
-      supabase.from('profiles').select('full_name').eq('id', record.paper_checker_id).single(),
+      supabase.from('profiles').select('full_name').eq('id', record.supervisor_id).single(),
       record.confirmed_by
         ? supabase.from('profiles').select('full_name').eq('id', record.confirmed_by).single()
         : Promise.resolve({ data: null }),
@@ -56,7 +56,7 @@ export default async function PaperCheckerDetailPage({
 
   const canConfirmReject =
     record.confirmation_status === 'pending' &&
-    record.paper_checker_id !== profile.id &&
+    record.supervisor_id !== profile.id &&
     (profile.role === 'admin' || (profile.role === 'staff' && profile.branch_id === record.branch_id));
 
   const isAdmin = profile.role === 'admin';
@@ -76,7 +76,7 @@ export default async function PaperCheckerDetailPage({
     <div className="max-w-3xl">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">{record.test_name}</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">{record.duty_description}</h1>
           <p className="mt-1 text-sm text-slate-600">{branch?.name}</p>
         </div>
         <div className="flex gap-2">
@@ -86,14 +86,12 @@ export default async function PaperCheckerDetailPage({
       </div>
 
       <dl className="mt-6 grid grid-cols-2 gap-4 rounded-md border border-slate-200 p-4 sm:grid-cols-3">
-        <Field label="Test date" value={record.test_date} />
+        <Field label="Work date" value={record.work_date} />
         <Field label="Subject" value={subject?.name ?? '—'} />
         <Field label="Batch" value={batch?.name ?? '—'} />
-        <Field label="Paper checker" value={checker?.full_name ?? '—'} />
+        <Field label="Supervisor" value={supervisor?.full_name ?? '—'} />
         <Field label="Student count" value={String(record.student_count)} />
-        <Field label="Test marks" value={record.test_marks != null ? String(record.test_marks) : '—'} />
-        <Field label="Per-paper price" value={record.per_paper_price.toFixed(2)} />
-        <Field label="Answer key price" value={record.answer_key_price.toFixed(2)} />
+        <Field label="Rate" value={record.rate.toFixed(2)} />
         <Field label="Total amount" value={record.total_amount.toFixed(2)} />
       </dl>
 
@@ -126,15 +124,15 @@ export default async function PaperCheckerDetailPage({
       <div className="mt-6 space-y-4">
         {canConfirmReject && (
           <ConfirmRejectPanel
-            confirmAction={confirmPaperCheckerRecord.bind(null, record.id)}
-            rejectAction={rejectPaperCheckerRecord.bind(null, record.id)}
+            confirmAction={confirmSupervisorRecord.bind(null, record.id)}
+            rejectAction={rejectSupervisorRecord.bind(null, record.id)}
           />
         )}
         {isAdmin && (
           <ApprovePaidPanel
             paymentStatus={record.payment_status}
-            approveAction={approvePaperCheckerRecord.bind(null, record.id)}
-            markPaidAction={markPaperCheckerRecordPaid.bind(null, record.id)}
+            approveAction={approveSupervisorRecord.bind(null, record.id)}
+            markPaidAction={markSupervisorRecordPaid.bind(null, record.id)}
           />
         )}
         {editContext && (
@@ -143,14 +141,12 @@ export default async function PaperCheckerDetailPage({
             batches={editContext.batches}
             subjects={editContext.subjects}
             record={{
-              test_date: record.test_date,
+              work_date: record.work_date,
               batch_id: record.batch_id,
               subject_id: record.subject_id,
-              test_name: record.test_name,
+              duty_description: record.duty_description,
               student_count: record.student_count,
-              test_marks: record.test_marks,
-              per_paper_price: record.per_paper_price,
-              answer_key_price: record.answer_key_price,
+              rate: record.rate,
             }}
           />
         )}
