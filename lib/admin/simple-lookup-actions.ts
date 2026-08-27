@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/auth';
+import { logAudit } from '@/lib/audit';
 
 export type SimpleLookupTable = 'branches' | 'subjects';
 
@@ -26,8 +27,10 @@ export async function createLookup(
   if (!name) return { error: 'Name is required.' };
 
   const supabase = await createClient();
-  const { error } = await supabase.from(table).insert({ name });
-  if (error) return { error: friendlyError(error.message) };
+  const { data, error } = await supabase.from(table).insert({ name }).select('id').single();
+  if (error || !data) return { error: friendlyError(error?.message ?? 'Failed to create.') };
+
+  await logAudit(supabase, { tableName: table, recordId: data.id, action: 'created', newValue: name });
 
   revalidatePath(path);
   return { error: null };
@@ -46,8 +49,21 @@ export async function renameLookup(
   if (!name) return { error: 'Name is required.' };
 
   const supabase = await createClient();
+  const { data: existing } = await supabase.from(table).select('name').eq('id', id).single();
+
   const { error } = await supabase.from(table).update({ name }).eq('id', id);
   if (error) return { error: friendlyError(error.message) };
+
+  if (existing && existing.name !== name) {
+    await logAudit(supabase, {
+      tableName: table,
+      recordId: id,
+      action: 'edited',
+      fieldChanged: 'name',
+      previousValue: existing.name,
+      newValue: name,
+    });
+  }
 
   revalidatePath(path);
   return { error: null };
@@ -63,5 +79,12 @@ export async function setLookupActive(
 
   const supabase = await createClient();
   await supabase.from(table).update({ is_active: isActive }).eq('id', id);
+  await logAudit(supabase, {
+    tableName: table,
+    recordId: id,
+    action: isActive ? 'activated' : 'deactivated',
+    fieldChanged: 'is_active',
+    newValue: String(isActive),
+  });
   revalidatePath(path);
 }

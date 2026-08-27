@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/auth';
+import { logAudit } from '@/lib/audit';
 import type { PaymentRateModule } from '@/types/database.types';
 
 export interface PaymentRateActionState {
@@ -39,34 +40,56 @@ export async function createPaymentRate(
       return { error: 'Answer key price must be a valid non-negative number.' };
     }
 
-    const { error } = await supabase.from('payment_rates').insert({
-      module: rateModule,
-      branch_id: branchId,
-      subject_id: subjectId,
-      per_paper_price: perPaperPrice,
-      answer_key_price: answerKeyPrice,
-      rate_config: null,
-      effective_date: effectiveDate,
-      created_by: admin.id,
+    const { data, error } = await supabase
+      .from('payment_rates')
+      .insert({
+        module: rateModule,
+        branch_id: branchId,
+        subject_id: subjectId,
+        per_paper_price: perPaperPrice,
+        answer_key_price: answerKeyPrice,
+        rate_config: null,
+        effective_date: effectiveDate,
+        created_by: admin.id,
+      })
+      .select('id')
+      .single();
+    if (error || !data) return { error: error?.message ?? 'Failed to create rate.' };
+
+    await logAudit(supabase, {
+      tableName: 'payment_rates',
+      recordId: data.id,
+      action: 'created',
+      newValue: `${rateModule}: ${perPaperPrice}/paper + ${answerKeyPrice} answer key, effective ${effectiveDate}`,
     });
-    if (error) return { error: error.message };
   } else {
     const rate = Number(formData.get('rate'));
     if (!Number.isFinite(rate) || rate < 0) {
       return { error: 'Rate must be a valid non-negative number.' };
     }
 
-    const { error } = await supabase.from('payment_rates').insert({
-      module: rateModule,
-      branch_id: branchId,
-      subject_id: subjectId,
-      per_paper_price: null,
-      answer_key_price: null,
-      rate_config: { rate },
-      effective_date: effectiveDate,
-      created_by: admin.id,
+    const { data, error } = await supabase
+      .from('payment_rates')
+      .insert({
+        module: rateModule,
+        branch_id: branchId,
+        subject_id: subjectId,
+        per_paper_price: null,
+        answer_key_price: null,
+        rate_config: { rate },
+        effective_date: effectiveDate,
+        created_by: admin.id,
+      })
+      .select('id')
+      .single();
+    if (error || !data) return { error: error?.message ?? 'Failed to create rate.' };
+
+    await logAudit(supabase, {
+      tableName: 'payment_rates',
+      recordId: data.id,
+      action: 'created',
+      newValue: `${rateModule}: ${rate}/unit, effective ${effectiveDate}`,
     });
-    if (error) return { error: error.message };
   }
 
   revalidatePath(PATH);

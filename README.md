@@ -5,8 +5,9 @@ work (Paper Checkers, Supervisors, Open Day staff), route it through a
 confirm → approve → pay workflow, and generate PDF payment statements for Accounts.
 
 Built phase by phase per the project spec (see `## Development Phases` below).
-**Phases 1 (Foundation) through 6 (PDF reports) are complete**; later phases are not
-built yet.
+**Phases 1 (Foundation) through 7 (Audit history) are complete** — every module and
+every sidebar link now has a working page. Only Phase 8 (RLS hardening + polish)
+remains.
 
 ## Stack
 
@@ -239,10 +240,21 @@ and you (Admin) approve it and mark it paid from the same page.
 - `app/api/reports/pdf/route.ts` — same filters, same `fetchReportRows()`, rendered
   through `lib/pdf/build-pdf.ts` into a downloadable PDF.
 
-Audit History is not built yet.
+**Phase 7 — Audit history**
 
-Sidebar links to modules from later phases (Audit History) are present but that route
-doesn't exist yet — that's expected until its phase is built.
+- `audit_logs` was already written to by every module action (Phase 3); this phase
+  extends `logAudit()` calls into the admin CRUD actions too
+  (`lib/admin/staff-actions.ts`, `simple-lookup-actions.ts`, `batch-actions.ts`,
+  `payment-rate-actions.ts`) so role/branch/activation changes, branch/subject/batch
+  create-rename-activate, and payment rate creation all show up in the trail alongside
+  the record workflow actions — a real audit log needs to cover config changes, not
+  just record submissions.
+- `/audit-history` (Admin only): every logged change — table, action, field changed,
+  previous/new value, who, when, and the reason (for rejections) — filterable by table,
+  action, changed-by, and date range.
+
+Every module and every sidebar link now has a working page. Only Phase 8 (RLS
+hardening + polish) remains.
 
 ## Development Phases
 
@@ -258,6 +270,6 @@ doesn't exist yet — that's expected until its phase is built.
 5. **Dashboard** — cards + filters, wired to real aggregate queries. ✅
 6. **PDF reports** — filter-driven generation. ✅
 7. **Audit history** — triggers/logging wired into every mutating action, admin viewer
-   page.
+   page. ✅
 8. **RLS hardening + polish** — write and test every RLS policy, responsive pass, error
    states, empty states.

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth';
+import { logAudit } from '@/lib/audit';
 import type { UserRole } from '@/types/database.types';
 
 export interface StaffActionState {
@@ -54,12 +55,36 @@ export async function updateStaffProfile(
   }
 
   const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('role, branch_id, is_active')
+    .eq('id', id)
+    .single();
+
   const { error } = await supabase
     .from('profiles')
     .update({ role, branch_id: branchId, is_active: isActive })
     .eq('id', id);
 
   if (error) return { error: error.message };
+
+  if (existing) {
+    const changes: [string, string, string][] = [];
+    if (existing.role !== role) changes.push(['role', existing.role, role]);
+    if (existing.branch_id !== branchId) changes.push(['branch_id', existing.branch_id ?? '', branchId ?? '']);
+    if (existing.is_active !== isActive) changes.push(['is_active', String(existing.is_active), String(isActive)]);
+
+    for (const [fieldChanged, previousValue, newValue] of changes) {
+      await logAudit(supabase, {
+        tableName: 'profiles',
+        recordId: id,
+        action: 'edited',
+        fieldChanged,
+        previousValue,
+        newValue,
+      });
+    }
+  }
 
   revalidatePath(PATH);
   return { error: null };
