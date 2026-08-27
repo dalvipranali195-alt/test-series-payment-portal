@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script id="app-state" type="application/json">{"schemaVersion":2,"settings":{"adminPassword":"admin123","checkerRate":15,"supervisorRate":75,"openDayRate":500},"branches":["Main Branch","City Branch"],"forms":["Form A","Form B"],"batches":["Batch 1","Batch 2"],"standards":["10th","12th"],"sessions":["2026"],"staff":[{"staffId":"S001","name":"Anita Sharma","roles":["Paper Checker"],"branch":"Main Branch","session":"2026","contact":"9876543210","email":"anita@example.com","active":true,"pin":"1234"},{"staffId":"S002","name":"Rohan Mehta","roles":["Supervisor"],"branch":"Main Branch","session":"2026","contact":"9876500000","email":"","active":true,"pin":"1234"},{"staffId":"S003","name":"Priya Verma","roles":["Branch Coordinator"],"branch":"Main Branch","session":"2026","contact":"9876511111","email":"priya@example.com","active":true,"pin":"1234"},{"staffId":"S004","name":"Karan Singh","roles":["Open Day Examiner"],"branch":"City Branch","session":"2026","contact":"9876522222","email":"","active":true,"pin":"1234"}],"checker":[{"id":"c_demo1","dateOfPaper":"2026-08-26","branch":"Main Branch","form":"Form A","batch":"Batch 1","standard":"10th","session":"2026","staffId":"S001","staffName":"Anita Sharma","exam":"Test Series - Mock 3","subject":"Physics","marks":100,"numPapers":40,"rate":15,"answerKeyCharge":100,"total":700,"issuedBy":"S003","issuedByName":"Priya Verma","collectedBy":"S003","collectedByName":"Priya Verma","approvalStatus":"approved","paymentStatus":"Pending","rejectReason":"","submittedAt":"2026-08-26"}],"supervisor":[{"id":"v_demo1","date":"2026-08-26","branch":"Main Branch","form":"Form A","batch":"Batch 1","standard":"10th","session":"2026","staffId":"S002","staffName":"Rohan Mehta","exam":"Test Series - Mock 3","detail":"Hall A, morning session","workingHours":4,"rate":75,"total":300,"approvalStatus":"pending","paymentStatus":"Pending","rejectReason":"","submittedAt":"2026-08-26"}],"openday":[{"id":"o_demo1","date":"2026-08-26","branch":"City Branch","form":"Form B","batch":"Batch 2","standard":"12th","session":"2026","staffId":"S004","staffName":"Karan Singh","subject":"Mathematics","syllabus":"Full syllabus mock test","charge":500,"total":500,"approvalStatus":"draft","paymentStatus":"Pending","rejectReason":"","submittedAt":""},{"id":"o_mtakelf0u1vdw","date":"2026-08-26","branch":"City Branch","form":"","batch":"","standard":"","session":"","staffId":"S004","staffName":"Karan Singh","subject":"Physics","syllabus":"","charge":162,"total":162,"approvalStatus":"draft","paymentStatus":"Pending","rejectReason":"","submittedAt":""}]}</script>
+<script id="app-state" type="application/json">{"schemaVersion":2,"settings":{"adminPassword":"admin123","checkerRate":15,"supervisorRate":75,"openDayRate":500},"branches":["Main Branch","City Branch"],"forms":["Form A","Form B"],"batches":["Batch 1","Batch 2","Shikhar"],"standards":["10th","12th"],"sessions":["2026"],"staff":[{"staffId":"S001","name":"Anita Sharma","roles":["Paper Checker"],"branch":"Main Branch","session":"2026","contact":"9876543210","email":"anita@example.com","active":true,"pin":"1234"},{"staffId":"S002","name":"Rohan Mehta","roles":["Supervisor"],"branch":"Main Branch","session":"2026","contact":"9876500000","email":"","active":true,"pin":"1234"},{"staffId":"S003","name":"Priya Verma","roles":["Branch Coordinator"],"branch":"Main Branch","session":"2026","contact":"9876511111","email":"priya@example.com","active":true,"pin":"1234"},{"staffId":"S004","name":"Karan Singh","roles":["Open Day Examiner"],"branch":"City Branch","session":"2026","contact":"9876522222","email":"","active":true,"pin":"1234"}],"checker":[{"id":"c_demo1","dateOfPaper":"2026-08-26","branch":"Main Branch","form":"Form A","batch":"Batch 1","standard":"10th","session":"2026","staffId":"S001","staffName":"Anita Sharma","exam":"Test Series - Mock 3","subject":"Physics","marks":100,"numPapers":40,"rate":15,"answerKeyCharge":100,"total":700,"issuedBy":"S003","issuedByName":"Priya Verma","collectedBy":"S003","collectedByName":"Priya Verma","approvalStatus":"approved","paymentStatus":"Pending","rejectReason":"","submittedAt":"2026-08-26"}],"supervisor":[{"id":"v_demo1","date":"2026-08-26","branch":"Main Branch","form":"Form A","batch":"Batch 1","standard":"10th","session":"2026","staffId":"S002","staffName":"Rohan Mehta","exam":"Test Series - Mock 3","detail":"Hall A, morning session","workingHours":4,"rate":75,"total":300,"approvalStatus":"pending","paymentStatus":"Pending","rejectReason":"","submittedAt":"2026-08-26"}],"openday":[{"id":"o_demo1","date":"2026-08-26","branch":"City Branch","form":"Form B","batch":"Batch 2","standard":"12th","session":"2026","staffId":"S004","staffName":"Karan Singh","subject":"Mathematics","syllabus":"Full syllabus mock test","charge":500,"total":500,"approvalStatus":"draft","paymentStatus":"Pending","rejectReason":"","submittedAt":""},{"id":"o_mtakelf0u1vdw","date":"2026-08-26","branch":"City Branch","form":"","batch":"","standard":"","session":"","staffId":"S004","staffName":"Karan Singh","subject":"Physics","syllabus":"","charge":162,"total":162,"approvalStatus":"draft","paymentStatus":"Pending","rejectReason":"","submittedAt":""}]}</script>
 <script id="app-script">
 'use strict';
 
@@ -363,6 +363,10 @@ function masterFilterOptions(listKey, selected) {
   const list = state[listKey] || [];
   return `<option value="">All ${escapeHtml(MASTER_LIST_PLURALS[listKey])}</option>` + list.map(v => `<option value="${escapeHtml(v)}" ${v === selected ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
 }
+function distinctFieldOptions(rows, field, label, selected) {
+  const values = [...new Set(rows.map(r => r[field]).filter(Boolean))].sort();
+  return `<option value="">All ${escapeHtml(label)}</option>` + values.map(v => `<option value="${escapeHtml(v)}" ${v === selected ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
+}
 function addMasterItem(listKey, inputId) {
   const input = document.getElementById(inputId);
   const name = input.value.trim();
@@ -384,14 +388,14 @@ function masterFieldsFormRow(prefix, editing, includeSession) {
   return `
     <div class="form-row">
       <div class="field"><label>Form</label><select id="${prefix}-form">${masterFieldOptions('forms', editing ? editing.form : '')}</select></div>
-      <div class="field"><label>Batch</label><select id="${prefix}-batch">${masterFieldOptions('batches', editing ? editing.batch : '')}</select></div>
+      <div class="field"><label>Batch</label><input type="text" id="${prefix}-batch" value="${editing ? escapeHtml(editing.batch) : ''}" placeholder="e.g. Batch 1"></div>
     </div>
     ${includeSession ? `
     <div class="form-row">
-      <div class="field"><label>Standard</label><select id="${prefix}-standard">${masterFieldOptions('standards', editing ? editing.standard : '')}</select></div>
+      <div class="field"><label>Std</label><input type="text" id="${prefix}-standard" value="${editing ? escapeHtml(editing.standard) : ''}" placeholder="e.g. 10th"></div>
       <div class="field"><label>Academic Session</label><select id="${prefix}-session">${masterFieldOptions('sessions', editing ? editing.session : '')}</select></div>
     </div>` : `
-    <div class="field"><label>Standard</label><select id="${prefix}-standard">${masterFieldOptions('standards', editing ? editing.standard : '')}</select></div>`}
+    <div class="field"><label>Std</label><input type="text" id="${prefix}-standard" value="${editing ? escapeHtml(editing.standard) : ''}" placeholder="e.g. 10th"></div>`}
   `;
 }
 function renderMasterListCard(listKey) {
@@ -889,11 +893,13 @@ function renderCheckerSection(identity) {
       ${canAdd ? `<button class="btn btn-primary btn-sm" onclick="openCheckerModal()">+ Add Record</button>` : ''}
     </div>
     ${rows.length ? `<div class="table-wrap"><table>
-      <thead><tr><th>Date of Paper</th><th>Staff</th><th>Branch</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Papers</th><th>Rate</th><th>Answer Key</th><th>Total</th><th>Issued By</th><th>Collected By</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
+      <thead><tr><th>Date of Paper</th><th>Staff</th><th>Branch</th><th>Std</th><th>Batch</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Papers</th><th>Rate</th><th>Answer Key</th><th>Total</th><th>Issued By</th><th>Collected By</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td class="num">${escapeHtml(r.dateOfPaper)}</td>
         <td>${escapeHtml(r.staffName)}</td>
         <td>${escapeHtml(r.branch)}</td>
+        <td>${escapeHtml(r.standard)}</td>
+        <td>${escapeHtml(r.batch)}</td>
         <td>${escapeHtml(r.exam)}</td>
         <td>${escapeHtml(r.subject)}</td>
         <td class="num">${escapeHtml(r.marks)}</td>
@@ -1021,11 +1027,13 @@ function renderSupervisorSection(identity) {
       ${canAdd ? `<button class="btn btn-primary btn-sm" onclick="openSupervisorModal()">+ Add Record</button>` : ''}
     </div>
     ${rows.length ? `<div class="table-wrap"><table>
-      <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Session</th><th>Exam</th><th>Details</th><th>Hours</th><th>Rate</th><th>Total</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
+      <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Std</th><th>Batch</th><th>Session</th><th>Exam</th><th>Details</th><th>Hours</th><th>Rate</th><th>Total</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td class="num">${escapeHtml(r.date)}</td>
         <td>${escapeHtml(r.staffName)}</td>
         <td>${escapeHtml(r.branch)}</td>
+        <td>${escapeHtml(r.standard)}</td>
+        <td>${escapeHtml(r.batch)}</td>
         <td>${escapeHtml(r.session)}</td>
         <td>${escapeHtml(r.exam)}</td>
         <td>${escapeHtml(r.detail)}</td>
@@ -1132,11 +1140,13 @@ function renderOpenDaySection(identity) {
       ${canAdd ? `<button class="btn btn-primary btn-sm" onclick="openOpenDayModal()">+ Add Record</button>` : ''}
     </div>
     ${rows.length ? `<div class="table-wrap"><table>
-      <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Subject</th><th>Syllabus</th><th>Charge</th><th>Final Amount</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
+      <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Std</th><th>Batch</th><th>Subject</th><th>Syllabus</th><th>Charge</th><th>Final Amount</th><th>Approval</th><th>Payment</th><th></th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td class="num">${escapeHtml(r.date)}</td>
         <td>${escapeHtml(r.staffName)}</td>
         <td>${escapeHtml(r.branch)}</td>
+        <td>${escapeHtml(r.standard)}</td>
+        <td>${escapeHtml(r.batch)}</td>
         <td>${escapeHtml(r.subject)}</td>
         <td>${escapeHtml(r.syllabus)}</td>
         <td class="num">${money(r.charge)}</td>
@@ -1330,8 +1340,8 @@ function renderReportsTab(identity) {
     <div class="filter-bar">
       ${identity.type === 'admin' ? `<select id="rep-branch" onchange="reportsBranchFilter=this.value; renderReportResults();"><option value="">All Branches</option>${state.branches.map(b => `<option value="${escapeHtml(b)}" ${reportsBranchFilter === b ? 'selected' : ''}>${escapeHtml(b)}</option>`).join('')}</select>` : ''}
       <select id="rep-form" onchange="reportsFormFilter=this.value; renderReportResults();">${masterFilterOptions('forms', reportsFormFilter)}</select>
-      <select id="rep-batch" onchange="reportsBatchFilter=this.value; renderReportResults();">${masterFilterOptions('batches', reportsBatchFilter)}</select>
-      <select id="rep-standard" onchange="reportsStandardFilter=this.value; renderReportResults();">${masterFilterOptions('standards', reportsStandardFilter)}</select>
+      <select id="rep-batch" onchange="reportsBatchFilter=this.value; renderReportResults();">${distinctFieldOptions(reportsCombinedRows(identity), 'batch', 'Batches', reportsBatchFilter)}</select>
+      <select id="rep-standard" onchange="reportsStandardFilter=this.value; renderReportResults();">${distinctFieldOptions(reportsCombinedRows(identity), 'standard', 'Std', reportsStandardFilter)}</select>
       <select id="rep-session" onchange="reportsSessionFilter=this.value; renderReportResults();">${masterFilterOptions('sessions', reportsSessionFilter)}</select>
     </div>
     <div id="report-results"></div>
@@ -1442,12 +1452,14 @@ function renderReportResults() {
     </div>
     ${notYetApproved ? `<p class="helper" style="margin-bottom:10px;">${notYetApproved} record${notYetApproved === 1 ? '' : 's'} not yet approved — excluded from totals above.</p>` : ''}
     ${rows.length ? `<div class="table-wrap"><table>
-      <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Branch</th><th>Amount</th><th>Approval</th><th>Payment</th></tr></thead>
+      <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Branch</th><th>Std</th><th>Batch</th><th>Amount</th><th>Approval</th><th>Payment</th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td class="num">${escapeHtml(r.dateKey)}</td>
         <td>${escapeHtml(r.staffName)}</td>
         <td>${r.type}</td>
         <td>${escapeHtml(r.branch)}</td>
+        <td>${escapeHtml(r.standard)}</td>
+        <td>${escapeHtml(r.batch)}</td>
         <td class="num">${money(r.total)}</td>
         <td>${approvalBadge(r.approvalStatus)}</td>
         <td>${r.approvalStatus === 'approved' ? paymentBadge(r.paymentStatus) : '—'}</td>
@@ -1457,11 +1469,13 @@ function renderReportResults() {
     <div class="card" style="margin-top:18px;">
       <h3>Open Day Report</h3>
       ${openDayRows.length ? `<div class="table-wrap"><table>
-        <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Subject</th><th>Amount</th><th>Approval</th><th>Payment</th></tr></thead>
+        <thead><tr><th>Date</th><th>Staff</th><th>Branch</th><th>Std</th><th>Batch</th><th>Subject</th><th>Amount</th><th>Approval</th><th>Payment</th></tr></thead>
         <tbody>${openDayRows.map(r => `<tr>
           <td class="num">${escapeHtml(r.dateKey)}</td>
           <td>${escapeHtml(r.staffName)}</td>
           <td>${escapeHtml(r.branch)}</td>
+          <td>${escapeHtml(r.standard)}</td>
+          <td>${escapeHtml(r.batch)}</td>
           <td>${escapeHtml(r.subject)}</td>
           <td class="num">${money(r.total)}</td>
           <td>${approvalBadge(r.approvalStatus)}</td>
@@ -1787,7 +1801,7 @@ function downloadCheckerCsv() {
   const identity = getIdentity();
   const rows = scopedList(identity, 'checker');
   const columns = [
-    { key: 'dateOfPaper', label: 'Date of Paper' }, { key: 'branch', label: 'Branch' }, { key: 'staffName', label: 'Staff Name' },
+    { key: 'dateOfPaper', label: 'Date of Paper' }, { key: 'branch', label: 'Branch' }, { key: 'standard', label: 'Std' }, { key: 'batch', label: 'Batch' }, { key: 'staffName', label: 'Staff Name' },
     { key: 'exam', label: 'Test/Exam Name' }, { key: 'subject', label: 'Subject' }, { key: 'marks', label: 'Paper Marks' },
     { key: 'numPapers', label: 'Papers Checked' }, { key: 'rate', label: 'Rate' }, { key: 'answerKeyCharge', label: 'Answer Key Charge' },
     { key: 'total', label: 'Final Payment' }, { key: 'issuedByName', label: 'Paper Issued By' }, { key: 'collectedByName', label: 'Paper Collected By' },
@@ -1800,22 +1814,22 @@ function downloadCheckerPdf() {
   const identity = getIdentity();
   const rows = scopedList(identity, 'checker');
   const columns = [
-    { key: 'dateOfPaper', label: 'Date', width: 62 }, { key: 'branch', label: 'Branch', width: 78 }, { key: 'staffName', label: 'Staff', width: 90 },
-    { key: 'exam', label: 'Exam', width: 110 }, { key: 'subject', label: 'Subject', width: 70 }, { key: 'numPapers', label: 'Papers', width: 45 },
-    { key: 'rate', label: 'Rate', width: 55 }, { key: 'answerKeyCharge', label: 'Ans. Key', width: 55 }, { key: 'total', label: 'Total', width: 65 },
-    { key: 'issuedByName', label: 'Issued By', width: 80 }, { key: 'collectedByName', label: 'Collected By', width: 80 }, { key: 'approvalStatus', label: 'Status', width: 65 }
+    { key: 'dateOfPaper', label: 'Date', width: 55 }, { key: 'branch', label: 'Branch', width: 68 }, { key: 'standard', label: 'Std', width: 35 }, { key: 'batch', label: 'Batch', width: 50 }, { key: 'staffName', label: 'Staff', width: 80 },
+    { key: 'exam', label: 'Exam', width: 95 }, { key: 'subject', label: 'Subject', width: 60 }, { key: 'numPapers', label: 'Papers', width: 40 },
+    { key: 'rate', label: 'Rate', width: 50 }, { key: 'answerKeyCharge', label: 'Ans. Key', width: 50 }, { key: 'total', label: 'Total', width: 60 },
+    { key: 'issuedByName', label: 'Issued By', width: 70 }, { key: 'collectedByName', label: 'Collected By', width: 70 }, { key: 'approvalStatus', label: 'Status', width: 60 }
   ];
-  const rowsData = rows.map(r => ({ dateOfPaper: r.dateOfPaper, branch: r.branch, staffName: r.staffName, exam: r.exam, subject: r.subject, numPapers: r.numPapers, rate: moneyPlain(r.rate), answerKeyCharge: moneyPlain(r.answerKeyCharge), total: moneyPlain(r.total), issuedByName: r.issuedByName, collectedByName: r.collectedByName, approvalStatus: r.approvalStatus }));
+  const rowsData = rows.map(r => ({ dateOfPaper: r.dateOfPaper, branch: r.branch, standard: r.standard, batch: r.batch, staffName: r.staffName, exam: r.exam, subject: r.subject, numPapers: r.numPapers, rate: moneyPlain(r.rate), answerKeyCharge: moneyPlain(r.answerKeyCharge), total: moneyPlain(r.total), issuedByName: r.issuedByName, collectedByName: r.collectedByName, approvalStatus: r.approvalStatus }));
   const grandTotal = rows.filter(r => r.approvalStatus === 'approved').reduce((s, r) => s + Number(r.total || 0), 0);
   const blob = buildPdf({ title: 'Paper Checker Records', subtitle: `Generated ${todayStr()}`, columns, rows: rowsData, totalsLines: [`Approved Total: ${moneyPlain(grandTotal)}`] });
-  const columnsCsv = [{ key: 'dateOfPaper', label: 'Date of Paper' }, { key: 'branch', label: 'Branch' }, { key: 'staffName', label: 'Staff Name' }, { key: 'exam', label: 'Exam' }, { key: 'subject', label: 'Subject' }, { key: 'numPapers', label: 'Papers' }, { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Total' }, { key: 'approvalStatus', label: 'Status' }];
+  const columnsCsv = [{ key: 'dateOfPaper', label: 'Date of Paper' }, { key: 'branch', label: 'Branch' }, { key: 'standard', label: 'Std' }, { key: 'batch', label: 'Batch' }, { key: 'staffName', label: 'Staff Name' }, { key: 'exam', label: 'Exam' }, { key: 'subject', label: 'Subject' }, { key: 'numPapers', label: 'Papers' }, { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Total' }, { key: 'approvalStatus', label: 'Status' }];
   offerDownload('paper-checker-records.pdf', blob, buildCsv(columnsCsv, rowsData));
 }
 function downloadSupervisorCsv() {
   const identity = getIdentity();
   const rows = scopedList(identity, 'supervisor');
   const columns = [
-    { key: 'date', label: 'Date' }, { key: 'branch', label: 'Branch' }, { key: 'session', label: 'Session' }, { key: 'staffName', label: 'Staff Name' },
+    { key: 'date', label: 'Date' }, { key: 'branch', label: 'Branch' }, { key: 'standard', label: 'Std' }, { key: 'batch', label: 'Batch' }, { key: 'session', label: 'Session' }, { key: 'staffName', label: 'Staff Name' },
     { key: 'exam', label: 'Test/Exam Name' }, { key: 'detail', label: 'Supervision Details' }, { key: 'workingHours', label: 'Working Hours' },
     { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Final Payment' }, { key: 'approvalStatus', label: 'Approval Status' }
   ];
@@ -1826,14 +1840,14 @@ function downloadSupervisorPdf() {
   const identity = getIdentity();
   const rows = scopedList(identity, 'supervisor');
   const columns = [
-    { key: 'date', label: 'Date', width: 62 }, { key: 'branch', label: 'Branch', width: 80 }, { key: 'session', label: 'Session', width: 55 },
-    { key: 'staffName', label: 'Staff', width: 90 }, { key: 'exam', label: 'Exam', width: 120 }, { key: 'detail', label: 'Details', width: 130 },
-    { key: 'workingHours', label: 'Hours', width: 45 }, { key: 'rate', label: 'Rate', width: 55 }, { key: 'total', label: 'Total', width: 65 }, { key: 'approvalStatus', label: 'Status', width: 65 }
+    { key: 'date', label: 'Date', width: 55 }, { key: 'branch', label: 'Branch', width: 68 }, { key: 'standard', label: 'Std', width: 35 }, { key: 'batch', label: 'Batch', width: 50 }, { key: 'session', label: 'Session', width: 45 },
+    { key: 'staffName', label: 'Staff', width: 75 }, { key: 'exam', label: 'Exam', width: 100 }, { key: 'detail', label: 'Details', width: 110 },
+    { key: 'workingHours', label: 'Hours', width: 40 }, { key: 'rate', label: 'Rate', width: 50 }, { key: 'total', label: 'Total', width: 60 }, { key: 'approvalStatus', label: 'Status', width: 60 }
   ];
-  const rowsData = rows.map(r => ({ date: r.date, branch: r.branch, session: r.session, staffName: r.staffName, exam: r.exam, detail: r.detail, workingHours: r.workingHours, rate: moneyPlain(r.rate), total: moneyPlain(r.total), approvalStatus: r.approvalStatus }));
+  const rowsData = rows.map(r => ({ date: r.date, branch: r.branch, standard: r.standard, batch: r.batch, session: r.session, staffName: r.staffName, exam: r.exam, detail: r.detail, workingHours: r.workingHours, rate: moneyPlain(r.rate), total: moneyPlain(r.total), approvalStatus: r.approvalStatus }));
   const grandTotal = rows.filter(r => r.approvalStatus === 'approved').reduce((s, r) => s + Number(r.total || 0), 0);
   const blob = buildPdf({ title: 'Supervisor Records', subtitle: `Generated ${todayStr()}`, columns, rows: rowsData, totalsLines: [`Approved Total: ${moneyPlain(grandTotal)}`] });
-  const columnsCsv = [{ key: 'date', label: 'Date' }, { key: 'branch', label: 'Branch' }, { key: 'staffName', label: 'Staff Name' }, { key: 'exam', label: 'Exam' }, { key: 'workingHours', label: 'Hours' }, { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Total' }, { key: 'approvalStatus', label: 'Status' }];
+  const columnsCsv = [{ key: 'date', label: 'Date' }, { key: 'branch', label: 'Branch' }, { key: 'standard', label: 'Std' }, { key: 'batch', label: 'Batch' }, { key: 'staffName', label: 'Staff Name' }, { key: 'exam', label: 'Exam' }, { key: 'workingHours', label: 'Hours' }, { key: 'rate', label: 'Rate' }, { key: 'total', label: 'Total' }, { key: 'approvalStatus', label: 'Status' }];
   offerDownload('supervisor-records.pdf', blob, buildCsv(columnsCsv, rowsData));
 }
 
@@ -1881,8 +1895,6 @@ function renderSettingsTab(identity) {
       </form>
     </div>
     ${renderMasterListCard('forms')}
-    ${renderMasterListCard('batches')}
-    ${renderMasterListCard('standards')}
     ${renderMasterListCard('sessions')}
     <div class="card">
       <h3>Change Admin Password</h3>
