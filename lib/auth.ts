@@ -38,3 +38,18 @@ export async function requireAdmin(): Promise<Profile> {
 
   return profile;
 }
+
+/**
+ * Guard for pages shared by Staff/Coordinator and Admin (e.g. the
+ * Confirmation Queue). Same rationale as requireAdmin(): RLS is still the
+ * real enforcement layer underneath.
+ */
+export async function requireStaffOrAdmin(): Promise<Profile> {
+  const profile = await getCurrentProfile();
+
+  if (!profile || !profile.is_active || (profile.role !== 'admin' && profile.role !== 'staff')) {
+    redirect('/dashboard');
+  }
+
+  return profile;
+}

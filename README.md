@@ -5,8 +5,8 @@ work (Paper Checkers, Supervisors, Open Day staff), route it through a
 confirm → approve → pay workflow, and generate PDF payment statements for Accounts.
 
 Built phase by phase per the project spec (see `## Development Phases` below).
-**Phases 1 (Foundation), 2 (Lookup data), 3 (Paper Checker), 4a (Supervisor), and 4b
-(Open Day) are complete**; later phases are not built yet.
+**Phases 1 (Foundation) through 4c (Confirmation Queue + Payment Management) are
+complete**; later phases are not built yet.
 
 ## Stack
 
@@ -191,13 +191,29 @@ and you (Admin) approve it and mark it paid from the same page.
   `staff` only; batch/subject are optional selects), and `/open-day/[id]` (same
   confirm/reject, approve/mark-paid, admin-edit pattern as the other modules).
 
-The cross-module `/confirmation-queue` and `/payment-management` pages (Phase 4c —
-needed at least two modules to aggregate across, which now exist), Dashboard, Reports,
-and Audit History are not built yet.
+**Phase 4c — Confirmation Queue + Payment Management**
 
-Sidebar links to modules from later phases (Payment Management, Reports, Audit
-History) are present but those routes don't exist yet — that's expected until their
-phases are built.
+- `/confirmation-queue` (Staff/Coordinator + Admin): every `pending` record across all
+  three modules the viewer is allowed to act on (RLS scopes Staff to their branch,
+  Admin sees everything; a submitter's own pending record is filtered out client-side
+  since they can never confirm their own — the transition triggers would reject it
+  anyway). Inline Confirm / Reject-with-reason per row
+  (`components/shared/InlineConfirmReject.tsx`), oldest first.
+- `/payment-management` (Admin only): records `pending_admin_approval` with an inline
+  Approve action, approved-and-unpaid records grouped by staff member with a "Generate
+  slip (PDF)" link per staff, and a flat approved-records table with an inline Mark as
+  paid action per row.
+- `lib/pdf/build-pdf.ts` — a generic, paginated table-PDF builder on top of `pdf-lib`
+  (title/subtitle/columns/rows/totals), shared by the payment slip route and (Phase 6)
+  Reports export.
+- `app/api/payment-slip/[staffId]/route.ts` — Admin-only route handler that generates
+  and streams a payment slip PDF for one staff member's approved-and-unpaid records
+  across all three modules.
+
+Dashboard, Reports, and Audit History are not built yet.
+
+Sidebar links to modules from later phases (Reports, Audit History) are present but
+those routes don't exist yet — that's expected until their phases are built.
 
 ## Development Phases
 
@@ -209,7 +225,7 @@ phases are built.
 4. **Supervisor + Open Day modules** — same pattern, reusing components.
    - 4a. Supervisor module end-to-end. ✅
    - 4b. Open Day module end-to-end. ✅
-   - 4c. Cross-module Confirmation Queue + Payment Management pages.
+   - 4c. Cross-module Confirmation Queue + Payment Management pages. ✅
 5. **Dashboard** — cards + filters, wired to real aggregate queries.
 6. **PDF reports** — filter-driven generation.
 7. **Audit history** — triggers/logging wired into every mutating action, admin viewer
