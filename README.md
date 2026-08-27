@@ -5,8 +5,8 @@ work (Paper Checkers, Supervisors, Open Day staff), route it through a
 confirm → approve → pay workflow, and generate PDF payment statements for Accounts.
 
 Built phase by phase per the project spec (see `## Development Phases` below).
-**Phases 1 (Foundation), 2 (Lookup data), 3 (Paper Checker), and 4a (Supervisor) are
-complete**; later phases are not built yet.
+**Phases 1 (Foundation), 2 (Lookup data), 3 (Paper Checker), 4a (Supervisor), and 4b
+(Open Day) are complete**; later phases are not built yet.
 
 ## Stack
 
@@ -43,6 +43,10 @@ Open the Supabase SQL editor (or use the Supabase CLI) and run every file in
 - `0004_supervisor.sql` — creates `supervisor_records`: the same confirm → approve →
   pay shape as `paper_checker_records`, minus the answer-key split (one flat `rate`
   snapshot × `student_count`).
+- `0005_open_day.sql` — creates `open_day_records`. Two differences from the other two
+  modules: there's no dedicated `open_day` role (Staff/Coordinator submit directly, and
+  confirmation falls to a *different* Staff member of the same branch, or admin), and
+  `batch_id`/`subject_id` are nullable (an Open Day event isn't always tied to one).
 
 If you have the Supabase CLI linked to the project:
 
@@ -175,13 +179,25 @@ and you (Admin) approve it and mark it paid from the same page.
 - Payment Rates already supported a `supervisor` module option (Phase 3 built the admin
   form generically); this phase is what actually reads and snapshots that rate.
 
-Open Day (Phase 4b), the cross-module `/confirmation-queue` and `/payment-management`
-pages (Phase 4c — needed at least two modules to aggregate across, which now exist),
-Dashboard, Reports, and Audit History are not built yet.
+**Phase 4b — Open Day module**
 
-Sidebar links to modules from later phases (Open Day, Payment Management, Reports,
-Audit History) are present but those routes don't exist yet — that's expected until
-their phases are built.
+- `open_day_records`, RLS, and its transition trigger (see
+  `supabase/migrations/0005_open_day.sql`). No dedicated role exists for this module —
+  Staff/Coordinator submit directly, and a *different* Staff member of the same branch
+  (or admin) confirms; `batch_id`/`subject_id` are nullable since an Open Day event
+  isn't always scoped to one.
+- `/open-day` (branch-wide list — since there's no dedicated submitter role, this isn't
+  a "records I submitted" view like the other two modules), `/open-day/new` (role
+  `staff` only; batch/subject are optional selects), and `/open-day/[id]` (same
+  confirm/reject, approve/mark-paid, admin-edit pattern as the other modules).
+
+The cross-module `/confirmation-queue` and `/payment-management` pages (Phase 4c —
+needed at least two modules to aggregate across, which now exist), Dashboard, Reports,
+and Audit History are not built yet.
+
+Sidebar links to modules from later phases (Payment Management, Reports, Audit
+History) are present but those routes don't exist yet — that's expected until their
+phases are built.
 
 ## Development Phases
 
@@ -192,7 +208,7 @@ their phases are built.
    confirm/reject → admin approve → mark paid. ✅
 4. **Supervisor + Open Day modules** — same pattern, reusing components.
    - 4a. Supervisor module end-to-end. ✅
-   - 4b. Open Day module end-to-end.
+   - 4b. Open Day module end-to-end. ✅
    - 4c. Cross-module Confirmation Queue + Payment Management pages.
 5. **Dashboard** — cards + filters, wired to real aggregate queries.
 6. **PDF reports** — filter-driven generation.
