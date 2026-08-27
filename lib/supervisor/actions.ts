@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile, requireAdmin } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
 import { resolvePaymentRate } from '@/lib/payment-rates';
+import { resolveSubmitter } from '@/lib/records/resolve-submitter';
 import type { Database } from '@/types/database.types';
 
 export interface FormActionState {
@@ -35,12 +36,12 @@ export async function submitSupervisorRecord(
 ): Promise<FormActionState> {
   const profile = await getCurrentProfile();
   if (!profile || !profile.is_active) return initialError('Not authorized.');
-  if (profile.role !== 'supervisor') {
-    return initialError('Only Supervisors can submit records.');
-  }
-  if (!profile.branch_id) {
-    return initialError('Your account has no branch assigned yet. Contact an admin.');
-  }
+
+  const supabase = await createClient();
+
+  const resolved = await resolveSubmitter(supabase, profile, 'supervisor', 'Supervisor', formData);
+  if (!resolved.ok) return initialError(resolved.error);
+  const { staffId, branchId } = resolved.submitter;
 
   const workDate = String(formData.get('work_date') ?? '');
   const batchId = String(formData.get('batch_id') ?? '');
@@ -56,11 +57,9 @@ export async function submitSupervisorRecord(
     return initialError('Student count must be a whole number, 0 or more.');
   }
 
-  const supabase = await createClient();
-
   const rate = await resolvePaymentRate(supabase, {
     module: 'supervisor',
-    branchId: profile.branch_id,
+    branchId,
     subjectId,
     onDate: workDate,
   });
@@ -76,9 +75,9 @@ export async function submitSupervisorRecord(
     .from('supervisor_records')
     .insert({
       work_date: workDate,
-      branch_id: profile.branch_id,
+      branch_id: branchId,
       batch_id: batchId,
-      supervisor_id: profile.id,
+      supervisor_id: staffId,
       subject_id: subjectId,
       duty_description: dutyDescription,
       student_count: studentCount,

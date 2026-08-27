@@ -14,10 +14,12 @@ export default function OpenDayForm({
   batches,
   subjects,
   branchRate,
+  staffId,
 }: {
   batches: { id: string; name: string }[];
   subjects: { id: string; name: string }[];
   branchRate: number | null;
+  staffId?: string;
 }) {
   const [state, formAction, pending] = useActionState(submitOpenDayRecord, initialState);
   const [studentCount, setStudentCount] = useState('');
@@ -30,6 +32,7 @@ export default function OpenDayForm({
 
   return (
     <form action={formAction} className="max-w-xl space-y-4">
+      {staffId && <input type="hidden" name="staff_id" value={staffId} />}
       <div>
         <label className="block text-sm font-medium text-slate-700">Event date</label>
         <input

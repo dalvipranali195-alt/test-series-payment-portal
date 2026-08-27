@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile, requireAdmin } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
 import { resolvePaymentRate } from '@/lib/payment-rates';
+import { resolveSubmitter } from '@/lib/records/resolve-submitter';
 import type { Database } from '@/types/database.types';
 
 export interface FormActionState {
@@ -36,12 +37,12 @@ export async function submitOpenDayRecord(
 ): Promise<FormActionState> {
   const profile = await getCurrentProfile();
   if (!profile || !profile.is_active) return initialError('Not authorized.');
-  if (profile.role !== 'staff') {
-    return initialError('Only Staff/Coordinator accounts can submit Open Day records.');
-  }
-  if (!profile.branch_id) {
-    return initialError('Your account has no branch assigned yet. Contact an admin.');
-  }
+
+  const supabase = await createClient();
+
+  const resolved = await resolveSubmitter(supabase, profile, 'staff', 'Staff/Coordinator', formData);
+  if (!resolved.ok) return initialError(resolved.error);
+  const { staffId, branchId } = resolved.submitter;
 
   const eventDate = String(formData.get('event_date') ?? '');
   const batchId = String(formData.get('batch_id') ?? '') || null;
@@ -55,11 +56,9 @@ export async function submitOpenDayRecord(
     return initialError('Student count must be a whole number, 0 or more.');
   }
 
-  const supabase = await createClient();
-
   const rate = await resolvePaymentRate(supabase, {
     module: 'open_day',
-    branchId: profile.branch_id,
+    branchId,
     subjectId,
     onDate: eventDate,
   });
@@ -75,10 +74,10 @@ export async function submitOpenDayRecord(
     .from('open_day_records')
     .insert({
       event_date: eventDate,
-      branch_id: profile.branch_id,
+      branch_id: branchId,
       batch_id: batchId,
       subject_id: subjectId,
-      staff_id: profile.id,
+      staff_id: staffId,
       event_name: eventName,
       student_count: studentCount,
       rate: flatRate,

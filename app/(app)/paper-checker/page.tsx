@@ -68,7 +68,7 @@ export default async function PaperCheckerListPage({
                 : 'Records for your branch.'}
           </p>
         </div>
-        {profile.role === 'paper_checker' && (
+        {(profile.role === 'paper_checker' || profile.role === 'admin') && (
           <Link
             href="/paper-checker/new"
             className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"

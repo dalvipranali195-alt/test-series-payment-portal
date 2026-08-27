@@ -14,10 +14,12 @@ export default function PaperCheckerForm({
   batches,
   subjects,
   ratesBySubject,
+  staffId,
 }: {
   batches: { id: string; name: string }[];
   subjects: { id: string; name: string }[];
   ratesBySubject: Record<string, { perPaperPrice: number; answerKeyPrice: number } | undefined>;
+  staffId?: string;
 }) {
   const [state, formAction, pending] = useActionState(submitPaperCheckerRecord, initialState);
   const [subjectId, setSubjectId] = useState('');
@@ -36,6 +38,7 @@ export default function PaperCheckerForm({
 
   return (
     <form action={formAction} className="max-w-xl space-y-4">
+      {staffId && <input type="hidden" name="staff_id" value={staffId} />}
       <div>
         <label className="block text-sm font-medium text-slate-700">Test date</label>
         <input

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile, requireAdmin } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
 import { resolvePaymentRate } from '@/lib/payment-rates';
+import { resolveSubmitter } from '@/lib/records/resolve-submitter';
 import type { Database } from '@/types/database.types';
 
 export interface FormActionState {
@@ -30,12 +31,12 @@ export async function submitPaperCheckerRecord(
 ): Promise<FormActionState> {
   const profile = await getCurrentProfile();
   if (!profile || !profile.is_active) return initialError('Not authorized.');
-  if (profile.role !== 'paper_checker') {
-    return initialError('Only Paper Checkers can submit records.');
-  }
-  if (!profile.branch_id) {
-    return initialError('Your account has no branch assigned yet. Contact an admin.');
-  }
+
+  const supabase = await createClient();
+
+  const resolved = await resolveSubmitter(supabase, profile, 'paper_checker', 'Paper Checker', formData);
+  if (!resolved.ok) return initialError(resolved.error);
+  const { staffId, branchId } = resolved.submitter;
 
   const testDate = String(formData.get('test_date') ?? '');
   const batchId = String(formData.get('batch_id') ?? '');
@@ -56,11 +57,9 @@ export async function submitPaperCheckerRecord(
     return initialError('Test marks must be a whole number, 0 or more.');
   }
 
-  const supabase = await createClient();
-
   const rate = await resolvePaymentRate(supabase, {
     module: 'paper_checker',
-    branchId: profile.branch_id,
+    branchId,
     subjectId,
     onDate: testDate,
   });
@@ -75,9 +74,9 @@ export async function submitPaperCheckerRecord(
     .from('paper_checker_records')
     .insert({
       test_date: testDate,
-      branch_id: profile.branch_id,
+      branch_id: branchId,
       batch_id: batchId,
-      paper_checker_id: profile.id,
+      paper_checker_id: staffId,
       subject_id: subjectId,
       test_name: testName,
       student_count: studentCount,

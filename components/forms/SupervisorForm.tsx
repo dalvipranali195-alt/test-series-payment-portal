@@ -14,10 +14,12 @@ export default function SupervisorForm({
   batches,
   subjects,
   ratesBySubject,
+  staffId,
 }: {
   batches: { id: string; name: string }[];
   subjects: { id: string; name: string }[];
   ratesBySubject: Record<string, number | undefined>;
+  staffId?: string;
 }) {
   const [state, formAction, pending] = useActionState(submitSupervisorRecord, initialState);
   const [subjectId, setSubjectId] = useState('');
@@ -33,6 +35,7 @@ export default function SupervisorForm({
 
   return (
     <form action={formAction} className="max-w-xl space-y-4">
+      {staffId && <input type="hidden" name="staff_id" value={staffId} />}
       <div>
         <label className="block text-sm font-medium text-slate-700">Work date</label>
         <input

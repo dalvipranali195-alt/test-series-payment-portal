@@ -6,7 +6,9 @@ confirm → approve → pay workflow, and generate PDF payment statements for Ac
 
 Built phase by phase per the project spec (see `## Development Phases` below).
 **All 8 phases are complete** — every module and every sidebar link has a working
-page, with an RLS review and a responsive-layout pass on top.
+page, with an RLS review and a responsive-layout pass on top. Admin can also submit a
+record directly for any staff member in every module (see "Admin submitting on behalf
+of staff" below).
 
 ## Stack
 
@@ -288,6 +290,36 @@ Every module and every sidebar link now has a working page.
   off-canvas drawer below the `lg` breakpoint — a hamburger button in a mobile top bar
   opens it, a backdrop click or tapping a nav link closes it — and keeps it always
   visible as a static column at `lg` and above, same as before.
+
+**Admin submitting on behalf of staff**
+
+Every module's `/…/new` page and submit action previously only worked for that
+module's own role — Admin had full CRUD over Staff/Branches/Subjects/Batches/Payment
+Rates, but couldn't enter a Paper Checker, Supervisor, or Open Day record directly.
+Now Admin visiting any of `/paper-checker/new`, `/supervisor/new`, `/open-day/new` gets
+a staff picker first (`components/shared/StaffPickerForm.tsx`, listing active accounts
+in the right role — `paper_checker`, `supervisor`, or `staff` respectively); picking
+one loads the normal submission form scoped to that staff member's branch, with a
+"Submitting for: `<name>`" banner and a link back to change the selection.
+
+The record is still attributed to the selected staff member (not the admin) and still
+starts at `confirmation_status = 'pending'` — it goes through the exact same
+confirm → approve → pay workflow as a self-submitted record, just entered by admin
+instead. Someone else (another staff member or the admin themself, since the trigger
+only blocks the *submitter* from confirming their own record) still has to confirm it.
+
+- `0008_admin_submits_for_staff.sql` — the missing piece: the insert policy on all
+  three module tables only ever allowed `<submitter column> = auth.uid()`, so there
+  was no RLS path for admin to insert a row attributed to someone else. Adds one
+  admin-only insert policy per table, mirroring the "admin updates all" policy each
+  table already had.
+- `lib/records/resolve-submitter.ts` — shared by all three submit actions: resolves
+  "who is this record for and what branch" — the signed-in user for a self-submission,
+  or (for admin) the staff member named in a `staff_id` form field, validated against
+  that role and branch.
+- `lib/records/target-context.ts` — the page-side counterpart used by all three `/new`
+  pages to decide whether to show the submitter's own form, a staff picker, or a denied
+  message.
 
 ## Development Phases
 
