@@ -30,12 +30,21 @@ const ADMIN_ITEMS: NavItem[] = [
   { href: '/admin/payment-rates', label: 'Payment Rates', roles: ['admin'] },
 ];
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
+function NavLink({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: NavItem;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={`block rounded-md px-3 py-2 text-sm font-medium ${
         isActive ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
       }`}
@@ -48,9 +57,11 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export default function Sidebar({
   role,
   fullName,
+  onNavigate,
 }: {
   role: UserRole;
   fullName: string;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(role));
@@ -66,7 +77,7 @@ export default function Sidebar({
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
         {visibleItems.map((item) => (
-          <NavLink key={item.href} item={item} pathname={pathname} />
+          <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
         ))}
 
         {visibleAdminItems.length > 0 && (
@@ -75,13 +86,17 @@ export default function Sidebar({
               Admin
             </p>
             {visibleAdminItems.map((item) => (
-              <NavLink key={item.href} item={item} pathname={pathname} />
+              <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
             ))}
           </div>
         )}
 
         <div className="pt-4">
-          <NavLink item={{ href: '/settings', label: 'Settings', roles: [] }} pathname={pathname} />
+          <NavLink
+            item={{ href: '/settings', label: 'Settings', roles: [] }}
+            pathname={pathname}
+            onNavigate={onNavigate}
+          />
         </div>
       </nav>
 

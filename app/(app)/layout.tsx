@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCurrentProfile } from '@/lib/auth';
-import Sidebar from '@/components/layout/Sidebar';
+import AppShell from '@/components/layout/AppShell';
 import SignOutButton from '@/components/layout/SignOutButton';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -26,9 +26,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar role={profile.role} fullName={profile.full_name} />
-      <main className="flex-1 overflow-y-auto bg-slate-50 p-8">{children}</main>
-    </div>
+    <AppShell role={profile.role} fullName={profile.full_name}>
+      {children}
+    </AppShell>
   );
 }

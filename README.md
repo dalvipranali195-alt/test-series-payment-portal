@@ -5,9 +5,8 @@ work (Paper Checkers, Supervisors, Open Day staff), route it through a
 confirm → approve → pay workflow, and generate PDF payment statements for Accounts.
 
 Built phase by phase per the project spec (see `## Development Phases` below).
-**Phases 1 (Foundation) through 7 (Audit history) are complete** — every module and
-every sidebar link now has a working page. Only Phase 8 (RLS hardening + polish)
-remains.
+**All 8 phases are complete** — every module and every sidebar link has a working
+page, with an RLS review and a responsive-layout pass on top.
 
 ## Stack
 
@@ -253,8 +252,42 @@ and you (Admin) approve it and mark it paid from the same page.
   previous/new value, who, when, and the reason (for rejections) — filterable by table,
   action, changed-by, and date range.
 
-Every module and every sidebar link now has a working page. Only Phase 8 (RLS
-hardening + polish) remains.
+Every module and every sidebar link now has a working page.
+
+**Phase 8 — RLS hardening + polish**
+
+- `0007_rls_hardening.sql` — a full read-through of every policy in every prior
+  migration turned up one real gap: the insert policy on all three module tables
+  checked the submitter's role but never checked that the `branch_id` being inserted
+  matched that submitter's own `profiles.branch_id`. The app layer always passes the
+  submitter's real branch (nothing in the UI could reach this), but RLS is supposed to
+  hold even against a direct REST/RPC call that skips the app entirely — a
+  paper_checker could otherwise have inserted a row attributing work (and its payment)
+  to a branch they don't belong to. All three insert policies now also require
+  `branch_id` to match a profile row for that user with the right role, active, in that
+  branch.
+  - Known, accepted tradeoff also found on this pass: `log_audit()` is a
+    security-definer RPC grantable to every authenticated user by design (Staff and
+    non-admin submitters need to call it after confirming/rejecting), and it doesn't
+    validate that `p_table_name`/`p_record_id`/`p_action` correspond to something the
+    caller actually did. It does hard-code `changed_by = auth.uid()` from the session
+    rather than trusting a client-supplied value, so no one can forge another user's
+    identity in the trail — but a malicious authenticated user could still insert a
+    fabricated log line about an unrelated table/record. Full per-action validation
+    would mean re-deriving each module's exact business rules inside the audit
+    function too, which is a lot of surface for a log-integrity edge case; flagging it
+    here rather than building that out.
+  - This review was a careful reading of every `create policy` statement against what
+    each page/action actually needs, not a live test suite run against a real Postgres
+    instance — there's no live Supabase project in this environment to run one
+    against. Before going to production, running the confirm/reject/approve/paid flow
+    as each role against a real project (per the "Try the Paper Checker / Supervisor
+    workflow" steps above) is worth doing once as a final check.
+- Responsive layout: the sidebar was a fixed 256px column with no mobile handling.
+  `components/layout/AppShell.tsx` (new, client component) now renders it as an
+  off-canvas drawer below the `lg` breakpoint — a hamburger button in a mobile top bar
+  opens it, a backdrop click or tapping a nav link closes it — and keeps it always
+  visible as a static column at `lg` and above, same as before.
 
 ## Development Phases
 
@@ -272,4 +305,4 @@ hardening + polish) remains.
 7. **Audit history** — triggers/logging wired into every mutating action, admin viewer
    page. ✅
 8. **RLS hardening + polish** — write and test every RLS policy, responsive pass, error
-   states, empty states.
+   states, empty states. ✅
